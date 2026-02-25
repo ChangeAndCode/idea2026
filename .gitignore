@@ -1,0 +1,13 @@
+# Dependencias y builds
+node_modules/
+dist/
+
+# Variables de entorno (nunca subir secretos)
+.env
+.env.*
+!.env.example
+*.local
+
+# Sistema y editor
+.DS_Store
+*.log
