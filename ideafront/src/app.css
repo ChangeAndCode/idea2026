@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+}
+
+/* Barra búsqueda: los 3 selects siempre iguales (fondo blanco aunque estén disabled) */
+.search-select:disabled {
+  background-color: #ffffff !important;
+  color: #64748b;
+}
