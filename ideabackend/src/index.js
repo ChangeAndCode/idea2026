@@ -8,6 +8,11 @@ import { config } from './config.js';
 const app = express();
 app.use(cors());
 app.use(express.json());
+if (process.env.CLERK_SECRET_KEY) {
+  const { clerkMiddleware } = await import('@clerk/express');
+  const publishableKey = process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY;
+  app.use(clerkMiddleware({ publishableKey, secretKey: process.env.CLERK_SECRET_KEY }));
+}
 app.use('/api', routes);
 
 app.use((err, req, res, next) => {
