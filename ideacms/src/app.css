@@ -20,8 +20,14 @@
     @apply bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden;
   }
   .cms-btn-primary {
-    @apply px-4 py-2 bg-slate-800 text-white rounded-lg font-medium
-           hover:bg-slate-700 active:bg-slate-900 transition-colors disabled:opacity-50 disabled:pointer-events-none;
+    @apply px-4 py-2 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none;
+    background-color: #007BFF;
+  }
+  .cms-btn-primary:hover:not(:disabled) {
+    background-color: #002B7A;
+  }
+  .cms-btn-primary:active:not(:disabled) {
+    background-color: #1A2C68;
   }
   .cms-btn-secondary {
     @apply px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-medium

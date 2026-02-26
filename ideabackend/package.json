@@ -8,12 +8,14 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "seed:search-combo": "node scripts/seed-search-combo.js",
-    "seed:cms-pages": "node scripts/seed-cms-pages.js"
+    "seed:cms-pages": "node scripts/seed-cms-pages.js",
+    "create-cms-user": "node scripts/create-cms-user.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@clerk/express": "^2.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",

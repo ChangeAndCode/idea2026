@@ -2,7 +2,11 @@
   import { onMount } from 'svelte';
   import { page } from '../stores/router.js';
 
-  let menuOpen = false;
+  /** Cuando está definido (ej. en /bolsa con sesión Clerk), se muestra "Cerrar sesión" */
+  /** component + slug para evitar @render y compatibilidad con el analizador */
+  let { signOut = null, component = null, slug = '', notFound = false } = $props();
+
+  let menuOpen = $state(false);
 
   /** Valores por defecto: se usan si la API falla o no devuelve datos. */
   const defaultNavItems = [
@@ -16,10 +20,10 @@
   const defaultLogoIdea = '/assets/logos/logo-idea.png';
   const defaultLogoChihuahua = '/assets/logos/chihuahua-capital.png';
 
-  let navItems = defaultNavItems;
-  let logoMunicipio = defaultLogoMunicipio;
-  let logoIdea = defaultLogoIdea;
-  let logoChihuahua = defaultLogoChihuahua;
+  let navItems = $state(defaultNavItems);
+  let logoMunicipio = $state(defaultLogoMunicipio);
+  let logoIdea = $state(defaultLogoIdea);
+  let logoChihuahua = $state(defaultLogoChihuahua);
 
   onMount(async () => {
     try {
@@ -44,7 +48,7 @@
   });
 
   function go(path) {
-    $page.goto(path);
+    page.goto(path);
     menuOpen = false;
   }
 
@@ -56,7 +60,7 @@
 <header class="relative z-30 bg-idea-dark text-white">
   <div class="flex justify-center items-center">
     <nav class="flex w-10/12 items-center justify-between px-4 py-4 sm:px-6">
-      <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-4" on:click|preventDefault={() => go('/')}>
+      <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-4" onclick={(e) => { e.preventDefault(); go('/'); }}>
         <img src={logoMunicipio} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" />
         <img src={logoIdea} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />
         <div class="sm:hidden">
@@ -73,7 +77,7 @@
             <a
               href={item.path}
               class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
-              on:click|preventDefault={() => go(item.path)}
+              onclick={(e) => { e.preventDefault(); go(item.path); }}
             >
               {item.label}
             </a>
@@ -83,11 +87,22 @@
           <a
             href="/bolsa"
             class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
-            on:click|preventDefault={() => go('/bolsa')}
+            onclick={(e) => { e.preventDefault(); go('/bolsa'); }}
           >
             Bolsa
           </a>
         </li>
+        {#if signOut}
+          <li>
+            <button
+              type="button"
+              class="text-sm font-normal uppercase tracking-wide text-white/90 transition hover:opacity-90 hover:text-white"
+              onclick={() => { signOut(); menuOpen = false; }}
+            >
+              Cerrar sesión
+            </button>
+          </li>
+        {/if}
       </ul>
 
       <!-- Móvil: botón hamburguesa -->
@@ -96,7 +111,7 @@
         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 md:hidden"
         aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
         aria-expanded={menuOpen}
-        on:click={toggleMenu}
+        onclick={toggleMenu}
       >
         {#if menuOpen}
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -123,7 +138,7 @@
           <a
             href={item.path}
             class="block py-3 text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
-            on:click|preventDefault={() => go(item.path)}
+            onclick={(e) => { e.preventDefault(); go(item.path); }}
           >
             {item.label}
           </a>
@@ -133,17 +148,33 @@
         <a
           href="/bolsa"
           class="block py-3 text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
-          on:click|preventDefault={() => go('/bolsa')}
+          onclick={(e) => { e.preventDefault(); go('/bolsa'); }}
         >
           Bolsa
         </a>
       </li>
+      {#if signOut}
+        <li>
+          <button
+            type="button"
+            class="block w-full py-3 text-left text-sm font-normal uppercase tracking-wide text-white/90 transition hover:opacity-90"
+            onclick={() => { signOut(); menuOpen = false; }}
+          >
+            Cerrar sesión
+          </button>
+        </li>
+      {/if}
     </ul>
   </div>
 </header>
 
 <main class="min-h-[calc(100vh-12rem)] pt-0">
-  <slot />
+  {#if component}
+    {@const Comp = component}
+    <Comp {slug} />
+  {:else if notFound}
+    <p class="p-8 text-center text-slate-500">Página no encontrada</p>
+  {/if}
 </main>
 
 <footer class="bg-idea-navy py-12 text-white">
