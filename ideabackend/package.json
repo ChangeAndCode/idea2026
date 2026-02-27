@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "build": "echo 'Backend: no build step'",
     "dev": "node --watch src/index.js",
     "seed:search-combo": "node scripts/seed-search-combo.js",
     "seed:cms-pages": "node scripts/seed-cms-pages.js",
