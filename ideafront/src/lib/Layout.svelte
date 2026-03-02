@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '../stores/router.js';
+  import { apiUrl } from '../api.js';
 
   /** Cuando está definido (ej. en /bolsa con sesión Clerk), se muestra "Cerrar sesión" */
   /** component + slug para evitar @render y compatibilidad con el analizador */
@@ -27,7 +28,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch('/api/cms/site');
+      const res = await fetch(apiUrl('/api/cms/site'));
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.navItems) && data.navItems.length > 0) {

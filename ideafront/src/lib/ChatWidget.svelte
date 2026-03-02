@@ -1,4 +1,6 @@
 <script>
+  import { apiUrl } from './api.js';
+
   let messages = [
     { role: 'assistant', content: 'Hola, soy el asistente de la Bolsa de Empleo. ¿En qué te puedo ayudar?' },
   ];
@@ -12,7 +14,7 @@
     messages = [...messages, { role: 'user', content: text }];
     loading = true;
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch(apiUrl('/api/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages }),

@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { apiUrl } from './api.js';
 
   const STORAGE_KEY = 'ideafront-job-search-history';
   const MAX_HISTORY = 8;
@@ -58,7 +59,7 @@
     addToHistory(term);
     try {
       const params = new URLSearchParams({ query: term, limit: 10 });
-      const res = await fetch(`/api/jobs?${params}`);
+      const res = await fetch(apiUrl(`/api/jobs?${params}`));
       if (!res.ok) throw new Error('Error al buscar');
       jobs = await res.json();
     } catch (e) {
