@@ -1,4 +1,5 @@
-const base = '/api/cms';
+const apiBase = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+const base = apiBase ? `${apiBase}/api/cms` : '/api/cms';
 
 /** Si Clerk está activo, el App debe llamar setClerkGetToken(getToken) para enviar el token en las peticiones de modificación. */
 let clerkGetToken = null;
