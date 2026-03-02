@@ -6,6 +6,7 @@
 
   let title = $state('');
   let body = $state('');
+  let image = $state('');
   let slugInput = $state('');
   let loading = $state(true);
   let saving = $state(false);
@@ -24,6 +25,7 @@
       const p = await getPage(slug);
       title = p.title ?? '';
       body = p.body ?? '';
+      image = p.image ?? '';
     } catch (e) {
       error = e.message;
     } finally {
@@ -38,6 +40,7 @@
   async function submit() {
     const t = title.trim();
     const b = body.trim();
+    const img = image.trim();
     if (!t) {
       error = 'Escribe un título para la página.';
       return;
@@ -52,9 +55,9 @@
           saving = false;
           return;
         }
-        await createPage({ slug: s, title: t, body: b });
+        await createPage({ slug: s, title: t, body: b, image: img });
       } else {
-        await updatePage(slug, { title: t, body: b });
+        await updatePage(slug, { title: t, body: b, image: img });
       }
       goBack();
     } catch (e) {
@@ -120,6 +123,18 @@
           placeholder="Ej: Emprendimiento"
         />
         <p class="text-sm text-slate-500 mt-1.5">Es lo que se ve en el menú y arriba de la página.</p>
+      </div>
+
+      <div>
+        <label for="image" class="cms-label">Logo / imagen (ruta)</label>
+        <input
+          id="image"
+          type="text"
+          class="cms-input"
+          bind:value={image}
+          placeholder="Ej: /assets/contenido/logo-mifam.png"
+        />
+        <p class="text-sm text-slate-500 mt-1.5">Ruta de la imagen que se muestra a la derecha del texto (ej: /assets/contenido/mi-logo.png). Déjalo vacío si no hay logo.</p>
       </div>
 
       <div>

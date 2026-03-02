@@ -210,14 +210,14 @@ router.get('/pages/:slug', async (req, res, next) => {
 /** Crea una página */
 router.post('/pages', requireCmsAuth, async (req, res, next) => {
   try {
-    const { slug, title, body } = req.body || {};
+    const { slug, title, body, image } = req.body || {};
     if (!slug || !title) return res.status(400).json({ error: 'Faltan slug o title' });
     const db = await getDb();
     const col = db.collection('cms_pages');
     const existing = await col.findOne({ slug });
     if (existing) return res.status(409).json({ error: 'Ya existe una página con ese slug' });
     const now = new Date();
-    const doc = { slug, title, body: body ?? '', created_at: now, updated_at: now };
+    const doc = { slug, title, body: body ?? '', image: image ?? '', created_at: now, updated_at: now };
     await col.insertOne(doc);
     const { _id, ...rest } = doc;
     res.status(201).json({ id: _id?.toString(), ...rest });
@@ -230,12 +230,13 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
 router.put('/pages/:slug', requireCmsAuth, async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const { title, body } = req.body || {};
+    const { title, body, image } = req.body || {};
     const db = await getDb();
     const col = db.collection('cms_pages');
     const update = { updated_at: new Date() };
     if (title !== undefined) update.title = title;
     if (body !== undefined) update.body = body;
+    if (image !== undefined) update.image = image ?? '';
     const r = await col.findOneAndUpdate(
       { slug },
       { $set: update },
