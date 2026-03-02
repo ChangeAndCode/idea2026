@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '../../stores/router.js';
+  import { apiUrl } from '../api.js';
 
   function go(path) {
     page.goto(path);
@@ -54,7 +55,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch('/api/cms/site');
+      const res = await fetch(apiUrl('/api/cms/site'));
       if (!res.ok) return;
       const data = await res.json();
       const L = data.landing;
@@ -96,7 +97,7 @@
     searchComboLoading = true;
     searchComboError = '';
     try {
-      const res = await fetch('/api/search-combo');
+      const res = await fetch(apiUrl('/api/search-combo'));
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         searchComboError = data.error || (res.status === 404 ? 'Ejecuta en ideabackend: npm run seed:search-combo' : 'Error al cargar opciones');

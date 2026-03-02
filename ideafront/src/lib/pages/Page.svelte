@@ -1,5 +1,6 @@
 <script>
   import { getStaticPage } from '../cms-static-data.js';
+  import { apiUrl } from '../api.js';
 
   export let slug = '';
   let title = '';
@@ -34,7 +35,7 @@
       return;
     }
     try {
-      const res = await fetch(`/api/cms/pages/${encodeURIComponent(s)}`);
+      const res = await fetch(apiUrl(`/api/cms/pages/${encodeURIComponent(s)}`));
       if (!res.ok) {
         notFound = true;
         return;
