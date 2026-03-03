@@ -72,7 +72,7 @@
   });
 </script>
 
-<div class="cms-card p-6">
+<div class="cms-card p-6 max-w-6xl mx-auto">
   <button
     type="button"
     class="text-slate-600 hover:text-slate-800 font-medium text-sm mb-6 flex items-center gap-1"
@@ -96,64 +96,102 @@
       <div class="h-64 rounded-lg bg-slate-100 animate-pulse"></div>
     </div>
   {:else}
-    <form onsubmit={(e) => { e.preventDefault(); submit(); }} class="space-y-6">
-      {#if isCreate}
-        <div>
-          <label for="slug" class="cms-label">Nombre en la URL</label>
-          <input
-            id="slug"
-            type="text"
-            class="cms-input"
-            bind:value={slugInput}
-            placeholder="ej: emprendimiento"
-          />
-          <p class="text-sm text-slate-500 mt-1.5">Así se verá el enlace. Si pones <em>emprendimiento</em>, la página será: …/pagina/emprendimiento. Usa solo letras minúsculas y guiones.</p>
+    <form
+      onsubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+      class="space-y-8"
+    >
+      <!-- Disposición en dos columnas en pantallas grandes: meta a la izquierda, contenido a la derecha -->
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2.2fr)]">
+        <div class="space-y-6">
+          <div class="border-b border-slate-200 pb-3">
+            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              Información básica
+            </p>
+          </div>
+
+          {#if isCreate}
+            <div>
+              <label for="slug" class="cms-label">Nombre en la URL</label>
+              <input
+                id="slug"
+                type="text"
+                class="cms-input"
+                bind:value={slugInput}
+                placeholder="ej: emprendimiento"
+              />
+              <p class="text-sm text-slate-500 mt-1.5">
+                Así se verá el enlace. Si pones <em>emprendimiento</em>, la página será:
+                <code class="bg-slate-100 px-1 rounded text-xs">…/pagina/emprendimiento</code>. Usa solo
+                letras minúsculas y guiones.
+              </p>
+            </div>
+          {:else}
+            <div>
+              <p class="text-sm text-slate-500">
+                Enlace de esta página:
+                <code class="bg-slate-100 px-1.5 py-0.5 rounded">/pagina/{slug}</code>
+                (no se puede cambiar al editar).
+              </p>
+            </div>
+          {/if}
+
+          <div>
+            <label for="title" class="cms-label">Título</label>
+            <input
+              id="title"
+              type="text"
+              class="cms-input"
+              bind:value={title}
+              placeholder="Ej: Emprendimiento"
+            />
+            <p class="text-sm text-slate-500 mt-1.5">
+              Es lo que se ve en el menú y arriba de la página.
+            </p>
+          </div>
+
+          <div>
+            <label for="image" class="cms-label">Logo / imagen (ruta)</label>
+            <input
+              id="image"
+              type="text"
+              class="cms-input"
+              bind:value={image}
+              placeholder="Ej: /assets/contenido/logo-mifam.png"
+            />
+            <p class="text-sm text-slate-500 mt-1.5">
+              Ruta de la imagen que se muestra a la derecha del texto (ej:
+              <code class="bg-slate-100 px-1 rounded text-xs">/assets/contenido/mi-logo.png</code>). Déjalo
+              vacío si no hay logo.
+            </p>
+          </div>
         </div>
-      {:else}
-        <p class="text-sm text-slate-500">Enlace de esta página: <code class="bg-slate-100 px-1.5 py-0.5 rounded">/pagina/{slug}</code> (no se puede cambiar al editar)</p>
-      {/if}
 
-      <div>
-        <label for="title" class="cms-label">Título</label>
-        <input
-          id="title"
-          type="text"
-          class="cms-input"
-          bind:value={title}
-          placeholder="Ej: Emprendimiento"
-        />
-        <p class="text-sm text-slate-500 mt-1.5">Es lo que se ve en el menú y arriba de la página.</p>
+        <div class="space-y-3">
+          <div class="border-b border-slate-200 pb-3">
+            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+              Contenido de la página
+            </p>
+          </div>
+          <label for="body" class="cms-label">Texto principal</label>
+          <textarea
+            id="body"
+            class="cms-input font-mono text-sm min-h-[20rem] leading-relaxed resize-y"
+            bind:value={body}
+            placeholder="<p>Escribe aquí el texto de la página...</p>"
+          ></textarea>
+          <ul class="text-sm text-slate-500 mt-1.5 space-y-1.5 list-disc list-inside">
+            <li>Puedes usar etiquetas como &lt;p&gt;, &lt;strong&gt;, &lt;a href=&quot;…&quot;&gt; y listas.</li>
+            <li>Si pegas texto plano, envuelve cada párrafo en &lt;p&gt;…&lt;/p&gt; para que se vea mejor.</li>
+            <li>Evita bloques muy largos: separa por subtítulos y párrafos cortos.</li>
+          </ul>
+        </div>
       </div>
 
-      <div>
-        <label for="image" class="cms-label">Logo / imagen (ruta)</label>
-        <input
-          id="image"
-          type="text"
-          class="cms-input"
-          bind:value={image}
-          placeholder="Ej: /assets/contenido/logo-mifam.png"
-        />
-        <p class="text-sm text-slate-500 mt-1.5">Ruta de la imagen que se muestra a la derecha del texto (ej: /assets/contenido/mi-logo.png). Déjalo vacío si no hay logo.</p>
-      </div>
-
-      <div>
-        <label for="body" class="cms-label">Contenido</label>
-        <textarea
-          id="body"
-          class="cms-input font-mono text-sm min-h-[14rem]"
-          bind:value={body}
-          placeholder="<p>Escribe aquí el texto de la página...</p>"
-        ></textarea>
-        <p class="text-sm text-slate-500 mt-1.5">El texto e imágenes de la página. Puedes usar etiquetas como &lt;p&gt;, &lt;strong&gt;, &lt;a href="..."&gt; para enlaces y listas. Si no usas HTML, escribe normal y envuelve cada párrafo en &lt;p&gt;…&lt;/p&gt;.</p>
-      </div>
-
-      <div class="flex flex-wrap gap-2 pt-2">
-        <button
-          type="submit"
-          class="cms-btn-primary"
-          disabled={saving}
-        >
+      <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
+        <button type="submit" class="cms-btn-primary" disabled={saving}>
           {saving ? 'Guardando…' : (isCreate ? 'Crear página' : 'Guardar cambios')}
         </button>
         <button type="button" class="cms-btn-secondary" onclick={goBack}>
