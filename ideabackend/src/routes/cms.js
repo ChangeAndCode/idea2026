@@ -334,6 +334,13 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
       lastName: user.lastName ?? user.last_name ?? '',
     });
   } catch (err) {
+    // Clerk devuelve 422 con detalles (ej. email ya existe, contraseña no cumple reglas)
+    const status = err.statusCode ?? err.status ?? 422;
+    const errors = err.errors ?? err.data?.errors ?? [];
+    const first = errors[0];
+    const msg = first?.longMessage ?? first?.message ?? err.message ?? 'No se pudo crear el usuario. Revisa que el correo no esté ya registrado y que la contraseña tenga al menos 8 caracteres.';
+    err.status = status;
+    err.message = msg;
     next(err);
   }
 });
