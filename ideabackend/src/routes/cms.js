@@ -316,14 +316,17 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
     const emailVal = String(email).trim().toLowerCase();
     const firstVal = (firstName != null && String(firstName).trim()) || undefined;
     const lastVal = (lastName != null && String(lastName).trim()) || undefined;
+    // Clerk exige username en esta instancia: se genera desde el correo (parte antes de @, sin puntos)
+    const localPart = emailVal.split('@')[0] || '';
+    const usernameVal = localPart.replace(/\./g, '').replace(/[^a-z0-9_]/g, '_').slice(0, 100) || `user_${Date.now()}`;
 
     const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
     const user = await clerk.users.createUser({
       emailAddress: [emailVal],
+      username: usernameVal,
       password: String(password),
       firstName: firstVal,
       lastName: lastVal,
-      // Si Clerk rechaza la contraseña por política de complejidad, omitir comprobaciones
       skipPasswordChecks: true,
     });
 
