@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getAuth } from '@clerk/express';
+import { createClerkClient } from '@clerk/backend';
 import { getDb } from '../db/mongo.js';
 
 const router = Router();
@@ -305,32 +306,32 @@ router.get('/users', requireCmsAuth, async (req, res, next) => {
   }
 });
 
-/** Crea un usuario en Clerk (nombre, correo, contraseña temporal). Requiere auth. */
+/** Crea un usuario en Clerk (nombre, correo, contraseña temporal). Requiere auth. Usa SDK oficial. */
 router.post('/users', requireCmsAuth, async (req, res, next) => {
   try {
     if (!process.env.CLERK_SECRET_KEY) return res.status(503).json({ error: 'Configura CLERK_SECRET_KEY en el backend para crear usuarios.' });
     const { email, password, firstName, lastName } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'Faltan correo o contraseña' });
     if (String(password).length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
-    // Clerk Backend API usa camelCase (CreateUserParams)
     const emailVal = String(email).trim().toLowerCase();
     const firstVal = (firstName != null && String(firstName).trim()) || undefined;
     const lastVal = (lastName != null && String(lastName).trim()) || undefined;
-    const body = {
+
+    const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+    const user = await clerk.users.createUser({
       emailAddress: [emailVal],
       password: String(password),
       firstName: firstVal,
       lastName: lastVal,
-    };
-    const data = await clerkRequest('POST', '/users', body);
-    const emails = data.email_addresses ?? data.emailAddresses ?? [];
-    const first = data.first_name ?? data.firstName ?? '';
-    const last = data.last_name ?? data.lastName ?? '';
+    });
+
+    const emails = user.emailAddresses ?? user.email_addresses ?? [];
+    const primaryEmail = emails[0]?.emailAddress ?? emails[0]?.email_address ?? emailVal;
     res.status(201).json({
-      id: data.id,
-      email: emails[0]?.email_address ?? emails[0]?.emailAddress ?? emailVal,
-      firstName: first,
-      lastName: last,
+      id: user.id,
+      email: primaryEmail,
+      firstName: user.firstName ?? user.first_name ?? '',
+      lastName: user.lastName ?? user.last_name ?? '',
     });
   } catch (err) {
     next(err);
