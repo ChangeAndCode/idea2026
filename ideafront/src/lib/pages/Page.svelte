@@ -1,5 +1,4 @@
 <script>
-  import { getStaticPage } from '../cms-static-data.js';
   import { apiUrl } from '../api.js';
 
   export let slug = '';
@@ -26,29 +25,25 @@
     if (!s) return;
     loading = true;
     notFound = false;
-    const staticPage = getStaticPage(s);
-    if (staticPage) {
-      title = staticPage.title || '';
-      body = staticPage.body || '';
-      image = staticPage.image || '';
-      loading = false;
-      return;
-    }
+
+    // 1) Intentar siempre primero el CMS (cms_pages)
     try {
       const res = await fetch(apiUrl(`/api/cms/pages/${encodeURIComponent(s)}`));
-      if (!res.ok) {
-        notFound = true;
+      if (res.ok) {
+        const data = await res.json();
+        title = data.title || '';
+        body = data.body || '';
+        image = data.image || '';
+        loading = false;
         return;
       }
-      const data = await res.json();
-      title = data.title || '';
-      body = data.body || '';
-      image = data.image || '';
-    } catch {
-      notFound = true;
-    } finally {
-      loading = false;
+    } catch (e) {
+      // si falla la llamada, probamos con estático
     }
+
+    // 2) Si no existe en CMS, marcar como no encontrada
+    notFound = true;
+    loading = false;
   }
 
   $: load(slug || 'inicio');
