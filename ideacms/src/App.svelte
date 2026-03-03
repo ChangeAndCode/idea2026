@@ -279,7 +279,7 @@
     </header>
 
     <main class="flex-1 overflow-auto py-6 px-4 md:px-6">
-      <div class="max-w-4xl mx-auto">
+      <div class="mx-auto" class:max-w-none={isContent} class:max-w-4xl={!isContent}>
         {#if path === 'site'}
           <SiteConfig />
         {:else if path === 'landing'}
