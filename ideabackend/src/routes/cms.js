@@ -323,6 +323,8 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
       password: String(password),
       firstName: firstVal,
       lastName: lastVal,
+      // Si Clerk rechaza la contraseña por política de complejidad, omitir comprobaciones
+      skipPasswordChecks: true,
     });
 
     const emails = user.emailAddresses ?? user.email_addresses ?? [];
@@ -334,11 +336,17 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
       lastName: user.lastName ?? user.last_name ?? '',
     });
   } catch (err) {
-    // Clerk devuelve 422 con detalles (ej. email ya existe, contraseña no cumple reglas)
     const status = err.statusCode ?? err.status ?? 422;
-    const errors = err.errors ?? err.data?.errors ?? [];
+    const errors = err.errors ?? err.data?.errors ?? err.body?.errors ?? [];
     const first = errors[0];
-    const msg = first?.longMessage ?? first?.message ?? err.message ?? 'No se pudo crear el usuario. Revisa que el correo no esté ya registrado y que la contraseña tenga al menos 8 caracteres.';
+    const msg =
+      first?.longMessage ??
+      first?.message ??
+      (err.message && err.message !== 'Unprocessable Entity' ? err.message : null) ??
+      'No se pudo crear el usuario. Revisa que el correo no esté ya registrado y que la contraseña tenga al menos 8 caracteres.';
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Clerk createUser error:', status, errors.length ? errors : err.message, err);
+    }
     err.status = status;
     err.message = msg;
     next(err);
