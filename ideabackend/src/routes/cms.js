@@ -278,7 +278,10 @@ async function clerkRequest(method, path, body = null) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(`${CLERK_API}${path}`, opts);
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.errors?.[0]?.message || data.message || `Clerk API ${r.status}`);
+  if (!r.ok) {
+    const msg = data.errors?.[0]?.message || data.errors?.[0]?.long_message || data.message || `Clerk API ${r.status}`;
+    throw new Error(msg);
+  }
   return data;
 }
 
@@ -309,17 +312,25 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
     const { email, password, firstName, lastName } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'Faltan correo o contraseña' });
     if (String(password).length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
-    const data = await clerkRequest('POST', '/users', {
-      email_address: [email.trim().toLowerCase()],
+    // Clerk Backend API usa camelCase (CreateUserParams)
+    const emailVal = String(email).trim().toLowerCase();
+    const firstVal = (firstName != null && String(firstName).trim()) || undefined;
+    const lastVal = (lastName != null && String(lastName).trim()) || undefined;
+    const body = {
+      emailAddress: [emailVal],
       password: String(password),
-      first_name: String(firstName ?? '').trim() || undefined,
-      last_name: String(lastName ?? '').trim() || undefined,
-    });
+      firstName: firstVal,
+      lastName: lastVal,
+    };
+    const data = await clerkRequest('POST', '/users', body);
+    const emails = data.email_addresses ?? data.emailAddresses ?? [];
+    const first = data.first_name ?? data.firstName ?? '';
+    const last = data.last_name ?? data.lastName ?? '';
     res.status(201).json({
       id: data.id,
-      email: data.email_addresses?.[0]?.email_address ?? email,
-      firstName: data.first_name ?? '',
-      lastName: data.last_name ?? '',
+      email: emails[0]?.email_address ?? emails[0]?.emailAddress ?? emailVal,
+      firstName: first,
+      lastName: last,
     });
   } catch (err) {
     next(err);
