@@ -3,6 +3,9 @@ export default {
   content: ['./index.html', './src/**/*.{svelte,js,ts,css}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
+      },
       colors: {
         idea: {
           dark: '#002B7A',
