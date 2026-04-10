@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '../stores/router.js';
-  import { apiUrl } from './api.js';
+  import { apiUrl, mediaUrl } from './api.js';
 
   /** Cuando está definido (ej. en /bolsa con sesión Clerk), se muestra "Cerrar sesión" */
   /** component + slug para evitar @render y compatibilidad con el analizador */
@@ -62,13 +62,13 @@
   <div class="flex justify-center items-center">
     <nav class="flex w-10/12 items-center justify-between px-4 py-4 sm:px-6">
       <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-4" onclick={(e) => { e.preventDefault(); go('/'); }}>
-        <img src={logoMunicipio} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" />
-        <img src={logoIdea} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />
+        <img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" />
+        <img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />
         <div class="sm:hidden">
           <div class="font-semibold tracking-tight text-xs">Chihuahua</div>
           <div class="text-[9px] text-white/90 leading-tight">capital de trabajo y resultados</div>
         </div>
-        <img src={logoChihuahua} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" />
+        <img src={mediaUrl(logoChihuahua)} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" />
       </a>
 
       <!-- Escritorio: enlaces visibles -->

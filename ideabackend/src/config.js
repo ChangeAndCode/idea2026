@@ -1,7 +1,14 @@
+import path from 'path';
+
+/** Carpeta donde se guardan las imágenes subidas (CMS). En VPS suele montarse un volumen aquí vía UPLOAD_DIR. */
+const uploadDir = (process.env.UPLOAD_DIR || '').trim() || path.join(process.cwd(), 'uploads');
+
 /** Configuración desde variables de entorno */
 export const config = {
   port: Number(process.env.PORT) || 4000,
   nodeEnv: process.env.NODE_ENV || 'development',
+  /** Ruta absoluta en disco para multer */
+  uploadDir,
 
   jsearch: {
     baseUrl: 'https://jsearch.p.rapidapi.com',
