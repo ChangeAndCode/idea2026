@@ -14,7 +14,7 @@ router.get('/', async (req, res, next) => {
     country = 'MX',
     employment_type,
     remote,
-    date_posted = 'all',
+    date_posted = 'week',
     page = 1,
     limit = 10,
   } = req.query;
