@@ -1,6 +1,7 @@
 <script>
   import { route } from '../stores/route.js';
   import { getSiteConfig, updateSiteConfig } from './api.js';
+  import ImageUploadField from './ImageUploadField.svelte';
 
   let navItems = $state([]);
   let logoMunicipio = $state('');
@@ -169,38 +170,28 @@
 
       <section class="p-5 rounded-xl bg-slate-50 border border-slate-200">
         <h3 class="font-semibold text-slate-800 mb-1">Logos del encabezado</h3>
-        <p class="text-sm text-slate-500 mb-4">Si quieres cambiar las 3 imágenes de arriba del sitio, pega aquí la ruta de cada una (ej: /assets/logos/logo.png). Si dejas un cuadro vacío, se sigue usando la imagen actual.</p>
-        <div class="space-y-3">
-          <div>
-            <label for="logo-municipio" class="cms-label">Logo 1 (Municipio)</label>
-            <input
-              id="logo-municipio"
-              type="text"
-              class="cms-input"
-              placeholder="/assets/logos/logo-municipio.png"
-              bind:value={logoMunicipio}
-            />
-          </div>
-          <div>
-            <label for="logo-idea" class="cms-label">Logo 2 (IDEA)</label>
-            <input
-              id="logo-idea"
-              type="text"
-              class="cms-input"
-              placeholder="/assets/logos/logo-idea.png"
-              bind:value={logoIdea}
-            />
-          </div>
-          <div>
-            <label for="logo-chihuahua" class="cms-label">Logo 3 (Chihuahua)</label>
-            <input
-              id="logo-chihuahua"
-              type="text"
-              class="cms-input"
-              placeholder="/assets/logos/chihuahua-capital.png"
-              bind:value={logoChihuahua}
-            />
-          </div>
+        <p class="text-sm text-slate-500 mb-4">
+          Sube una imagen para cada logo del encabezado. Si no subes nada en un espacio, en el sitio se sigue usando la imagen por defecto.
+        </p>
+        <div class="space-y-6">
+          <ImageUploadField
+            id="logo-municipio"
+            label="Logo 1 (Municipio)"
+            value={logoMunicipio}
+            onChange={(v) => (logoMunicipio = v)}
+          />
+          <ImageUploadField
+            id="logo-idea"
+            label="Logo 2 (IDEA)"
+            value={logoIdea}
+            onChange={(v) => (logoIdea = v)}
+          />
+          <ImageUploadField
+            id="logo-chihuahua"
+            label="Logo 3 (Chihuahua)"
+            value={logoChihuahua}
+            onChange={(v) => (logoChihuahua = v)}
+          />
         </div>
       </section>
 

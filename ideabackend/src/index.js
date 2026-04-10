@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import routes from './routes/index.js';
@@ -7,6 +8,10 @@ import { config } from './config.js';
 
 const app = express();
 app.use(cors());
+
+fs.mkdirSync(config.uploadDir, { recursive: true });
+app.use('/uploads', express.static(config.uploadDir, { fallthrough: true, index: false }));
+
 app.use(express.json());
 if (process.env.CLERK_SECRET_KEY) {
   const { clerkMiddleware } = await import('@clerk/express');

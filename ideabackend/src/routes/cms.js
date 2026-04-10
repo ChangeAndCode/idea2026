@@ -1,9 +1,41 @@
+import fs from 'fs';
+import path from 'path';
+import { randomUUID } from 'crypto';
 import { Router } from 'express';
+import multer from 'multer';
 import { getAuth } from '@clerk/express';
 import { createClerkClient } from '@clerk/backend';
 import { getDb } from '../db/mongo.js';
+import { config } from '../config.js';
 
 const router = Router();
+
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']);
+
+const uploadStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    try {
+      fs.mkdirSync(config.uploadDir, { recursive: true });
+      cb(null, config.uploadDir);
+    } catch (e) {
+      cb(/** @type {Error} */ (e));
+    }
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '';
+    const safe = ALLOWED_EXT.has(ext) ? ext : '.jpg';
+    cb(null, `${randomUUID()}${safe}`);
+  },
+});
+
+const upload = multer({
+  storage: uploadStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = /^image\/(jpeg|png|gif|webp|svg\+xml)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Solo se permiten imágenes (JPEG, PNG, GIF, WebP, SVG)'), ok);
+  },
+});
 
 /** Solo rutas de modificación: exigen sesión Clerk. Si CLERK_SECRET_KEY no está definida, no se exige. */
 function requireCmsAuth(req, res, next) {
@@ -14,6 +46,18 @@ function requireCmsAuth(req, res, next) {
   }
   next();
 }
+
+/** Subida de imagen para el CMS. Devuelve { path: '/uploads/<archivo>' } para guardar en MongoDB. */
+router.post('/upload', requireCmsAuth, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      const msg = err.message || 'Error al subir';
+      return res.status(400).json({ error: msg });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
+    res.json({ path: `/uploads/${req.file.filename}` });
+  });
+});
 
 const SITE_CONFIG_ID = 'main';
 

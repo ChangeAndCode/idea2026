@@ -18,6 +18,29 @@ async function authHeaders() {
   return headers;
 }
 
+/** Subida de imagen al backend (multipart). Requiere sesión si Clerk está activo. */
+export async function uploadImage(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  const headers = {};
+  if (clerkGetToken) {
+    try {
+      const token = await clerkGetToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    } catch (_) {}
+  }
+  const r = await fetch(`${base}/upload`, { method: 'POST', body: fd, headers });
+  const text = await r.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { error: text };
+  }
+  if (!r.ok) throw new Error(data.error || text || 'Error al subir');
+  return data;
+}
+
 export async function getPages() {
   const r = await fetch(`${base}/pages`);
   if (!r.ok) throw new Error(await r.text());

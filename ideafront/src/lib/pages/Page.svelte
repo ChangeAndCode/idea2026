@@ -1,5 +1,5 @@
 <script>
-  import { apiUrl } from '../api.js';
+  import { apiUrl, mediaUrl } from '../api.js';
 
   export let slug = '';
   let title = '';
@@ -51,6 +51,7 @@
   $: imgSrc = extracted.imgSrc;
   $: bodyWithoutImg = extracted.bodyWithoutImg;
   $: displayImage = image || imgSrc;
+  $: displayImageSrc = displayImage ? mediaUrl(displayImage) : '';
 </script>
 
 {#if loading}
@@ -84,10 +85,10 @@
         </div>
 
         <!-- Columna derecha: contenedor de imagen separado -->
-        {#if displayImage}
+        {#if displayImageSrc}
           <div class="flex-shrink-0 order-1 md:order-2 w-full md:w-[28rem] lg:w-[34rem] xl:w-[40rem]">
             <div class="bg-white p-4 rounded-lg">
-              <img src={displayImage} alt="" class="w-full object-contain" />
+              <img src={displayImageSrc} alt="" class="w-full object-contain" />
             </div>
           </div>
         {/if}
