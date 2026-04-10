@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '../../stores/router.js';
-  import { apiUrl } from '../api.js';
+  import { apiUrl, mediaUrl } from '../api.js';
 
   function go(path) {
     page.goto(path);
@@ -277,7 +277,7 @@
       </div>
       <div class="mt-8 flex justify-center md:mt-0 md:flex-shrink-0 md:justify-end">
         <img
-          src={heroMascotImg}
+          src={mediaUrl(heroMascotImg)}
           alt="Chambabot, asistente inteligente"
           class="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]"
         />
@@ -313,7 +313,7 @@
   <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-12 gap-y-8 px-4 md:gap-x-16 md:px-6">
     {#each heroLogos as logo}
       {#if logo.src}
-        <img src={logo.src} alt={logo.alt || 'Logo'} class="h-32 w-auto flex-1 min-w-0 max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
+        <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-32 w-auto flex-1 min-w-0 max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
       {/if}
     {/each}
   </div>
@@ -350,7 +350,7 @@
             {:else}
               <div class="relative mx-1 min-h-[280px] overflow-hidden rounded-2xl bg-idea-navy shadow-md">
                 <div class="absolute inset-0 flex items-center justify-center p-2">
-                  <img src={slide.img || ''} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                  <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
                 </div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 p-4 text-center text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   <p class="font-bold text-idea-yellow">{slide.title}</p>
@@ -382,7 +382,7 @@
           {:else}
             <div class="relative w-full overflow-hidden rounded-2xl shadow-md {i === carouselIndex ? 'min-h-[380px] bg-idea-navy shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px]' : 'min-h-[260px] bg-slate-100'}">
               <div class="absolute inset-0 flex items-center justify-center">
-                <img src={slide.img || ''} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
               </div>
               <div class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-4 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 {i === carouselIndex ? 'bg-black/55 text-white' : 'bg-black/40 text-white'}">
                 <p class="font-bold {i === carouselIndex ? 'text-idea-yellow text-lg' : 'text-white text-base'}">{slide.title}</p>
@@ -418,7 +418,7 @@
       <div class="grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-2 md:items-stretch">
         {#if card.imageOnLeft}
           <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:min-h-[280px] md:rounded-r-none md:rounded-l-2xl md:rounded-tr-none">
-            <img src={card.img || ''} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+            <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
           </div>
           <div class="order-2 flex flex-col justify-center p-6 md:p-8">
             <h3 class="text-xl font-bold uppercase tracking-wide text-idea-navy">{card.title}</h3>
@@ -432,7 +432,7 @@
             <button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>
           </div>
           <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:order-2 md:min-h-[280px] md:rounded-l-none md:rounded-r-2xl md:rounded-tl-none">
-            <img src={card.img || ''} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+            <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
           </div>
         {/if}
       </div>
