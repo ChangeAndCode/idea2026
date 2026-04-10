@@ -1,6 +1,7 @@
 <script>
   import { route } from '../stores/route.js';
   import { getPage, createPage, updatePage } from './api.js';
+  import ImageUploadField from './ImageUploadField.svelte';
 
   let { slug = null } = $props();
 
@@ -153,18 +154,14 @@
           </div>
 
           <div>
-            <label for="image" class="cms-label">Logo / imagen (ruta)</label>
-            <input
+            <ImageUploadField
               id="image"
-              type="text"
-              class="cms-input"
-              bind:value={image}
-              placeholder="Ej: /assets/contenido/logo-mifam.png"
+              label="Logo / imagen"
+              value={image}
+              onChange={(v) => (image = v)}
             />
             <p class="text-sm text-slate-500 mt-1.5">
-              Ruta de la imagen que se muestra a la derecha del texto (ej:
-              <code class="bg-slate-100 px-1 rounded text-xs">/assets/contenido/mi-logo.png</code>). Déjalo
-              vacío si no hay logo.
+              Sube una imagen para mostrarla a la derecha del texto. Déjalo sin subir si no necesitas logo.
             </p>
           </div>
         </div>

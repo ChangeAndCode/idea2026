@@ -1,5 +1,6 @@
 <script>
   import { getSiteConfig, updateSiteConfig } from './api.js';
+  import ImageUploadField from './ImageUploadField.svelte';
 
   const DEFAULT_LANDING = {
     heroTitle: '¡Bienvenido a tu nueva forma de conectar con Chihuahua!',
@@ -227,8 +228,12 @@
           <input id="hero-subtitle" type="text" class="cms-input mt-1" value={landing.heroSubtitle} oninput={(e) => setHero('heroSubtitle', e.target.value)} placeholder="Una línea que describa el sitio" />
         </div>
         <div>
-          <label for="hero-mascot" class="cms-label">Imagen de la mascota (ruta)</label>
-          <input id="hero-mascot" type="text" class="cms-input mt-1" value={landing.heroMascotImg} oninput={(e) => setHero('heroMascotImg', e.target.value)} placeholder="/assets/mascota/chambabot.png" />
+          <ImageUploadField
+            id="hero-mascot"
+            label="Imagen de la mascota"
+            value={landing.heroMascotImg}
+            onChange={(v) => setHero('heroMascotImg', v)}
+          />
         </div>
         <div>
           <label for="hero-cta" class="cms-label">Texto del botón</label>
@@ -263,10 +268,12 @@
               </div>
             </div>
             <div class="space-y-3">
-              <div>
-                <label for="logo-src-{i}" class="cms-label">Ruta de la imagen</label>
-                <input id="logo-src-{i}" type="text" class="cms-input mt-1" placeholder="/assets/logos/logo.png" value={logo.src} oninput={(e) => setLogo(i, 'src', e.target.value)} />
-              </div>
+              <ImageUploadField
+                id="logo-src-{i}"
+                label="Imagen del logo"
+                value={logo.src}
+                onChange={(v) => setLogo(i, 'src', v)}
+              />
               <div>
                 <label for="logo-alt-{i}" class="cms-label">Texto alternativo (alt)</label>
                 <input id="logo-alt-{i}" type="text" class="cms-input mt-1" placeholder="Descripción del logo" value={logo.alt} oninput={(e) => setLogo(i, 'alt', e.target.value)} />
@@ -328,7 +335,13 @@
               </div>
             {:else}
               <div class="space-y-2">
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Ruta de la imagen" value={slide.img} oninput={(e) => setSlide(i, 'img', e.target.value)} />
+                <ImageUploadField
+                  compact
+                  id="carousel-slide-img-{i}"
+                  label="Imagen"
+                  value={slide.img}
+                  onChange={(v) => setSlide(i, 'img', v)}
+                />
                 <input type="text" class="cms-input !py-2 text-sm" placeholder="Alt" value={slide.alt} oninput={(e) => setSlide(i, 'alt', e.target.value)} />
                 <input type="text" class="cms-input !py-2 text-sm" placeholder="Título" value={slide.title} oninput={(e) => setSlide(i, 'title', e.target.value)} />
                 <input type="text" class="cms-input !py-2 text-sm" placeholder="Subtítulo" value={slide.subtitle} oninput={(e) => setSlide(i, 'subtitle', e.target.value)} />
@@ -375,7 +388,13 @@
             <div class="space-y-2">
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Título de la tarjeta" value={card.title} oninput={(e) => setCard(i, 'title', e.target.value)} />
               <textarea class="cms-input !py-2 text-sm min-h-[60px]" placeholder="Texto (párrafo)" value={card.text} oninput={(e) => setCard(i, 'text', e.target.value)}></textarea>
-              <input type="text" class="cms-input !py-2 text-sm" placeholder="Ruta de la imagen" value={card.img} oninput={(e) => setCard(i, 'img', e.target.value)} />
+              <ImageUploadField
+                compact
+                id="ciudad-card-img-{i}"
+                label="Imagen"
+                value={card.img}
+                onChange={(v) => setCard(i, 'img', v)}
+              />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Alt de la imagen" value={card.imgAlt} oninput={(e) => setCard(i, 'imgAlt', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Texto del botón" value={card.buttonText} oninput={(e) => setCard(i, 'buttonText', e.target.value)} />
               <label class="flex items-center gap-2 text-sm text-slate-600">
