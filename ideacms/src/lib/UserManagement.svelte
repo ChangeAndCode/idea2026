@@ -137,9 +137,17 @@
           <div class="h-12 rounded-lg bg-slate-100 animate-pulse"></div>
         {/each}
       </div>
-    {:else if list.length === 0}
+      {:else if list.length === 0}
       <p class="text-slate-500 text-sm">Aún no hay usuarios. Crea el primero con el formulario de arriba.</p>
-    {:else}
+      {:else}
+      <div class="flex items-center justify-between gap-4 py-4 font-semibold text-slate-800">
+        <div>
+          Usuario
+        </div>
+        <div>
+          Acciones
+        </div>
+      </div>
       <ul class="divide-y divide-slate-100">
         {#each list as u}
           <li class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
@@ -148,6 +156,18 @@
                 {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
               </p>
               <p class="text-sm text-slate-500 truncate">{u.email}</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="flex justify-center items-center w-10 h-10 border-2 border-green-500 rounded-lg text-green-600  hover:bg-green-500 hover:text-white" aria-label="Suspender Usuario" title="Suspender">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                </button>
+              <button class="flex justify-center items-center  w-10 h-10 border-2 border-red-500 rounded-lg text-red-500 hover:bg-red-500 hover:text-white" aria-label="Eliminar Usuario" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-4 0a1 1 0 00-1 1v1h6V5a1 1 0 00-1-1m-4 0h4" />
+              </svg>
+              </button>
             </div>
           </li>
         {/each}
