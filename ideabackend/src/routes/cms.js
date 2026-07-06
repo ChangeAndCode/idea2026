@@ -400,4 +400,33 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
   }
 });
 
+/*
+Elimina un usuario de Clerk por ID. Requiere auth. Usa SDK oficial. Devuelve 204 si se eliminó, 404 si no existe.
+*/
+router.delete('/users/:id', requireCmsAuth, async (req, res, next) => {
+  try{
+    if (!process.env.CLERK_SECRET_KEY) return res.status(503).json({error: 'Configura CLERK_SECRET_KEY en el backend para eliminar usuarios.'});
+    const {id} = req.params;
+    if (!id) return res.status(400).json({error:"Falta ID de usuario"});
+    const auth = getAuth(req);
+    if (auth?.userId === id) {
+      return res.status(403).json({ error: 'No puedes eliminar tu propio usuario.' });
+    }
+    const clerk = createClerkClient({secretKey: process.env.CLERK_SECRET_KEY});
+    await clerk.users.deleteUser(id);
+    res.status(204).send();
+  } catch(err){
+    const status = err.statusCode ?? err.status ?? 422;
+    const errors = err.errors ?? err.data?.errors ?? err.body?.errors ?? [];
+    const first = errors[0];
+    const msg = first?.longMessage ?? first?.message ?? (err.message && err.message !== "Unprocessable Entity" ? err.message : null) ?? "No se pudo eliminar el usuario. Revisa que el ID sea correcto.";
+    if (process.env.NODE_ENV !== "production"){
+      console.error("Clerk deleteUser error: ", status, errors.length ? errors : err.message, err);
+    }
+    err.status = status;
+    err.message = msg;
+    next(err);
+  }
+});
+
 export default router;
