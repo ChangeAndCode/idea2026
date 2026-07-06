@@ -1,5 +1,5 @@
 <script>
-  import { getCmsUsers, createCmsUser } from './api.js';
+  import { getCmsUsers, createCmsUser, deleteCmsUser } from './api.js';
 
   let list = $state([]);
   let loading = $state(true);
@@ -11,6 +11,10 @@
   let email = $state('');
   let password = $state('');
 
+  let showDeleteModal = $state(false);
+  let userToDelete = $state(null);
+  let deletingUser = $state(false);
+
   async function load() {
     loading = true;
     error = '';
@@ -21,6 +25,35 @@
       list = [];
     } finally {
       loading = false;
+    }
+  }
+
+  function openDeleteModal(user) {
+    userToDelete = user;
+    showDeleteModal = true;
+  }
+
+  function closeDeleteModal() {
+    if (deletingUser) return;
+    showDeleteModal = false;
+    userToDelete = null;
+  }
+
+  async function confirmDeleteUser() {
+    if (!userToDelete?.id) return;
+    deletingUser = true;
+    error = '';
+    message = '';
+    try {
+      await deleteCmsUser(userToDelete.id);
+      message = 'Usuario eliminado correctamente.';
+      showDeleteModal = false;
+      userToDelete = null;
+      await load();
+    } catch (e) {
+      error = e.message;
+    } finally {
+      deletingUser = false;
     }
   }
 
@@ -163,7 +196,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
                 </button>
-              <button class="flex justify-center items-center  w-10 h-10 border-2 border-red-500 rounded-lg text-red-500 hover:bg-red-500 hover:text-white" aria-label="Eliminar Usuario" title="Eliminar">
+              <button type="button" class="flex justify-center items-center  w-10 h-10 border-2 border-red-500 rounded-lg text-red-500 hover:bg-red-500 hover:text-white" aria-label="Eliminar Usuario" title="Eliminar"
+              onclick={()=> openDeleteModal(u)}>
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-4 0a1 1 0 00-1 1v1h6V5a1 1 0 00-1-1m-4 0h4" />
               </svg>
@@ -174,4 +208,42 @@
       </ul>
     {/if}
   </div>
+  {#if showDeleteModal}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h4 class="text-lg font-semibold text-slate-800">Eliminar usuario</h4>
+
+        <p class="mt-3 text-sm text-slate-600">
+          ¿Seguro que quieres eliminar a
+          <span class="font-semibold text-slate-800">
+            {[userToDelete?.firstName, userToDelete?.lastName].filter(Boolean).join(' ') || userToDelete?.email}
+          </span>?
+        </p>
+
+        <p class="mt-2 text-sm text-slate-500">
+          Esta acción no se puede deshacer.
+        </p>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            onclick={closeDeleteModal}
+            disabled={deletingUser}
+          >
+            Cerrar
+          </button>
+
+          <button
+            type="button"
+            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            onclick={confirmDeleteUser}
+            disabled={deletingUser}
+          >
+            {deletingUser ? 'Eliminando...' : 'Eliminar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>

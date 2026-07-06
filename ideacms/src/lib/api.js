@@ -115,3 +115,20 @@ export async function createCmsUser(data) {
   if (!r.ok) throw new Error((await r.json()).error || await r.text());
   return r.json();
 }
+
+export async function deleteCmsUser(id){
+  const r = await fetch (`${base}/users/${encodeURIComponent(id)}`,{
+    method: 'DELETE',
+    headers: await authHeaders(),
+  });
+  if(!r.ok){
+    const text = await r.text();
+    let data = {};
+    try{
+      data = text ? JSON.parse(text) : {};
+    } catch{
+      data = { error: text };
+    }
+    throw new Error(data.error || text || 'No se pudo eliminar el usuario');
+  }
+}
