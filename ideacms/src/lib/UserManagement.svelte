@@ -1,5 +1,5 @@
 <script>
-  import { getCmsUsers, createCmsUser, deleteCmsUser } from './api.js';
+  import { getCmsUsers, createCmsUser, deleteCmsUser, lockCmsUser } from './api.js';
 
   let list = $state([]);
   let loading = $state(true);
@@ -59,6 +59,21 @@
       error = e.message;
     } finally {
       deletingUser = false;
+    }
+  }
+
+  async function lockUserStatus(user) {
+    if (!user?.id || isOwnUser(user)) return;
+    const nextLocked = !Boolean(user.locked);
+
+    try {
+      error = '';
+      message = '';
+      await lockCmsUser(user.id, nextLocked);
+      message = user.locked ? 'Usuario reactivado.' : 'Usuario suspendido.';
+      await load();
+    } catch (e) {
+      error = e.message;
     }
   }
 
@@ -196,18 +211,41 @@
               <p class="text-sm text-slate-500 truncate">{u.email}</p>
             </div>
             <div class="flex gap-2">
-              <button 
-              class={`flex justify-center items-center w-10 h-10 border-2 rounded-lg ${
-              isOwnUser(u)
-                ? 'border-slate-300 text-slate-400 bg-slate-100 cursor-not-allowed'
-                : 'border-green-500 text-green-600 hover:bg-green-500 hover:text-white'
-              }`}
-              aria-label="Suspender Usuario"
-              title="Suspender">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                </button>
+              <!--Block / allow user button-->
+              <button
+                type="button"
+                disabled={isOwnUser(u)}
+                class={`flex justify-center items-center w-10 h-10 border-2 rounded-lg ${
+                isOwnUser(u)
+                  ? 'border-slate-300 text-slate-400 bg-slate-100 cursor-not-allowed'
+                  : u.locked
+                  ?'border-green-500 text-green-600 hover:bg-green-500 hover:text-white'
+                  :'border-violet-500 text-violet-600 hover:bg-violet-500 hover:text-white'
+                }`}
+                aria-label={isOwnUser(u)
+                ? "No puedes suspender tu propio usuario"
+                : u.locked
+                ? 'Reactivar usuario.'
+                : 'Suspender usuario.'}
+                title={isOwnUser(u)
+                  ? "No puedes suspender tu propio usuario"
+                  : u.locked
+                    ? "Reactivar"
+                    :"Suspender"}
+                onclick={()=> !isOwnUser(u) && lockUserStatus(u)}>
+                  {#if u.locked}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  {:else}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                      <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
+                    </svg>
+                  {/if}
+                  
+
+              </button>
+              <!--Block / allow user button-->
               <button 
                 type="button"
                 disabled={isOwnUser(u)}
@@ -218,7 +256,7 @@
                 }`}
                 aria-label="Eliminar Usuario" 
                 title={isOwnUser(u) 
-                  ? "No puedes eliminar al propietario" 
+                  ? "No puedes modificar tu propio usuario" 
                   : "Eliminar"}
                 onclick={()=> !isOwnUser(u) && openDeleteModal(u)}>
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
