@@ -132,3 +132,21 @@ export async function deleteCmsUser(id){
     throw new Error(data.error || text || 'No se pudo eliminar el usuario');
   }
 }
+
+export async function lockCmsUser(id, locked){
+  const r = await fetch(`${base}/users/${encodeURIComponent(id)}/status`,{
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify({ locked }),
+  });
+  if(!r.ok){
+    const text = await r.text();
+    let data = {};
+    try{
+      data = text ? JSON.parse(text) : {};
+    } catch{
+      data = { error: text };
+    }
+    throw new Error(data.error || text || 'No se pudo cambiar el estado del usuario');
+  }
+}
