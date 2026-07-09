@@ -78,7 +78,28 @@
         <!-- Columna izquierda: solo texto (sin imagen embebida) -->
         <div class="flex-1 min-w-0 order-2 md:order-1 md:flex-[1_1_55%]">
           <div
-            class="page-body text-white/95 text-base leading-relaxed prose prose-invert max-w-none prose-headings:text-white prose-headings:font-bold prose-headings:text-lg prose-p:text-white/95 prose-a:text-white prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-idea-yellow prose-strong:text-white prose-ul:text-white/95 prose-li:text-white/95 prose-ul:my-4 prose-li:my-1"
+            class="page-body prose prose-invert max-w-none text-white/95
+            prose-p:text-white/95
+            prose-strong:text-white
+            prose-em:text-white/95
+            prose-headings:text-white
+            prose-headings:font-bold
+            prose-h2:text-3xl
+            prose-h2:mt-8
+            prose-h2:mb-3
+            prose-h3:text-2xl
+            prose-h3:mt-6
+            prose-h3:mb-2
+            prose-a:text-white
+            prose-a:underline
+            prose-a:underline-offset-2
+            hover:prose-a:text-idea-yellow
+            prose-ul:text-white/95
+            prose-ol:text-white/95
+            prose-li:text-white/95
+            prose-table:text-white
+            prose-th:text-white
+            prose-td:text-white"
           >
             {@html bodyWithoutImg || body || '<p>Sin contenido.</p>'}
           </div>
