@@ -490,7 +490,7 @@ async function onInlineImageSelected(event) {
         onclick={() => setTextAlign('left')}
       >
         <svg
-          class="w-4 h-4"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -515,7 +515,7 @@ async function onInlineImageSelected(event) {
         onclick={() => setTextAlign('center')}
       >
         <svg
-          class="w-4 h-4"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -535,11 +535,11 @@ async function onInlineImageSelected(event) {
         type="button"
         aria-label="right"
         title="Right Text"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class="cms-btn-secondary !py-1. !px-2 text-sm"
         onclick={() => setTextAlign('right')}
       >
         <svg
-          class="w-4 h-4"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -562,7 +562,7 @@ async function onInlineImageSelected(event) {
         onclick={insertTable}
       >
         <svg
-          class="w-4 h-4"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -585,7 +585,7 @@ async function onInlineImageSelected(event) {
         onclick={deleteTable}
       >
         <svg
-          class="w-4 h-4"
+          class="w-5 h-5"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -687,7 +687,7 @@ async function onInlineImageSelected(event) {
         type="button"
         aria-label="Insertar imagen"
         title="Insertar imagen"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
+        class="cms-btn-secondary !py-1.0 !px-2.5 text-sm w-10 h-10"
         onclick={openInlineImagePicker}
         disabled={inlineImageUploading}
       >
@@ -695,7 +695,7 @@ async function onInlineImageSelected(event) {
           <span class="text-xs">...</span>
         {:else}
           <svg
-            class="w-4 h-4"
+            class="w-5 h-5"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
