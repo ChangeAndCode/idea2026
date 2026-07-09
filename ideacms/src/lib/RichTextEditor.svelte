@@ -216,7 +216,7 @@ function getCurrentFontSize() {
   const editor = editorState.editor;
   if (!editor) return '';
 
-  return editor.getAttributes('textStyle').fontSize ?? '';
+  return editor?.getAttributes('textStyle').fontSize ?? '';
 }
 
 function setTextColor(color) {
@@ -232,7 +232,7 @@ function getCurrentTextColor() {
 <div class="rich-text-editor space-y-3">
   {#if editorState.editor}
     <div class="flex flex-wrap gap-2 rounded-lg border border-slate-300 p-2">
-
+      <!--HEADINGS-->
       <select
         title="Headings"
         class="cms-input !w-auto !min-h-0 !py-1.5 !px-3 text-sm"
@@ -245,26 +245,18 @@ function getCurrentTextColor() {
         <option value="4">H4</option>
         <option value="5">H5</option>
       </select>
-
-      <div class="relative">
-        <svg
-          class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 align-middle text-slate-500"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M12 6h4m4 0h-4m0 0v12M4 11h3m3 0H7m0 0v7"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+      <!--FONTSIZES-->
+      <div class="relative !w-[3.5rem]">
+        {#if !getCurrentFontSize()}
+          <div class="pointer-events-none absolute inset-y-0 left-1 right-8 flex items-center justify-center text-slate-500">
+            <span class="text-sm font-semibold leading-none">
+              T <span class="align-super text-[0.6rem]">T</span>
+            </span>
+          </div>
+        {/if}
 
         <select
-          class="cms-input !w-auto !min-h-0 !pr-8 text-sm"
+          class="cms-input"
           value={getCurrentFontSize()}
           onchange={(event) => setFontSize(event.currentTarget.value)}
           aria-label="Tamaño de fuente"
@@ -279,7 +271,7 @@ function getCurrentTextColor() {
           <option value="24px">24</option>
         </select>
       </div>
-
+      <!--COLOR-->
       <div class="flex items-center gap-2">
         <label for="text-color" class="sr-only">Color del texto</label>
 
@@ -292,7 +284,7 @@ function getCurrentTextColor() {
           title="Color del texto"
         />
       </div>
-
+      <!--PARAGRAPH-->
       <button
         type="button"
         title="Paragraph"
@@ -303,7 +295,7 @@ function getCurrentTextColor() {
       >
         P
       </button>
-
+      <!--BOLD-->
       <button
         type="button"
         title="Bold"
@@ -314,7 +306,7 @@ function getCurrentTextColor() {
       >
         B
       </button>
-
+      <!--ITALIC-->
       <button
         type="button"
         title="Italic"
@@ -325,7 +317,7 @@ function getCurrentTextColor() {
       >
         I
       </button>
-
+      <!--UNDERLINE-->
       <button
         type="button"
         title="Underline"
@@ -336,7 +328,7 @@ function getCurrentTextColor() {
       >
         U
       </button>
-
+      <!--UNORDER LIST-->
       <button
         type="button"
         title="Unorder List"
@@ -356,7 +348,7 @@ function getCurrentTextColor() {
             </path>
         </svg>
       </button>
-
+      <!--ORDER LIST-->
       <button
         type="button"
         title="Order List"
@@ -376,6 +368,7 @@ function getCurrentTextColor() {
           </path>
         </svg>
       </button>
+      <!--STRIKETHROUGH-->
       <button
         type="button"
         title="Strikethrough"
@@ -386,7 +379,7 @@ function getCurrentTextColor() {
       >
         S
       </button>
-
+      <!--HIGHLIGHTS-->
       <button
         type="button"
         title="Highlight"
@@ -406,7 +399,7 @@ function getCurrentTextColor() {
             <path d="M5 3c4.14545 3.80868 5.00112 6.00015 5 11h10c-.00112-4.99985.85455-7.19132 5-11H15zm6 13v10l8-6.154297V16z" />
           </svg>
       </button>
-
+      <!--LINK-->
       <button
         type="button"
         aria-label="link"
@@ -436,10 +429,11 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--LEFT TEXT-->
       <button
         type="button"
         aria-label="left"
+        title="Left Text"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         onclick={() => setTextAlign('left')}
       >
@@ -460,10 +454,11 @@ function getCurrentTextColor() {
         </svg>
         
       </button>
-
+      <!--CENTER TEXT-->
       <button
         type="button"
         aria-label="center"
+        title="Center Text"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         onclick={() => setTextAlign('center')}
       >
@@ -483,10 +478,11 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--RIGHT TEXT-->
       <button
         type="button"
         aria-label="right"
+        title="Right Text"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         onclick={() => setTextAlign('right')}
       >
@@ -506,7 +502,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--CREATE TABLES-->
       <button
         type="button"
         aria-label="createTable"
@@ -552,6 +548,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
+
       <button
         type="button"
         aria-label="addColumn"
