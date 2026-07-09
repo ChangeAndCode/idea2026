@@ -97,9 +97,16 @@
             prose-ul:text-white/95
             prose-ol:text-white/95
             prose-li:text-white/95
-            prose-table:text-white
+            prose-table:w-full
+            prose-table:border-collapse
+            prose-th:border
+            prose-th:border-white/25
+            prose-th:p-3
             prose-th:text-white
-            prose-td:text-white"
+            prose-td:border
+            prose-td:border-white/25
+            prose-td:p-3
+            prose-td:text-white/95"
           >
             {@html bodyWithoutImg || body || '<p>Sin contenido.</p>'}
           </div>
@@ -118,3 +125,11 @@
   </section>
 {/if}
 
+<style>
+  .page-body :global(mark) {
+    background: #fee68a;
+    color: #0f2f7a;
+    padding: 0 0.15rem;
+    border-radius: 0.2rem;
+  }
+</style>
