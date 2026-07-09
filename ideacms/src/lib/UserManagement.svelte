@@ -1,5 +1,5 @@
 <script>
-  import { getCmsUsers, createCmsUser } from './api.js';
+  import { getCmsUsers, createCmsUser, deleteCmsUser, lockCmsUser } from './api.js';
 
   let list = $state([]);
   let loading = $state(true);
@@ -10,6 +10,11 @@
   let lastName = $state('');
   let email = $state('');
   let password = $state('');
+  let {currentUserId = ""} = $props();
+
+  let showDeleteModal = $state(false);
+  let userToDelete = $state(null);
+  let deletingUser = $state(false);
 
   async function load() {
     loading = true;
@@ -21,6 +26,54 @@
       list = [];
     } finally {
       loading = false;
+    }
+  }
+
+  function openDeleteModal(user) {
+    userToDelete = user;
+    showDeleteModal = true;
+  }
+
+  function closeDeleteModal() {
+    if (deletingUser) return;
+    showDeleteModal = false;
+    userToDelete = null;
+  }
+
+  function isOwnUser(user){
+    return user?.id === currentUserId;
+  }
+
+  async function confirmDeleteUser() {
+    if (!userToDelete?.id) return;
+    deletingUser = true;
+    error = '';
+    message = '';
+    try {
+      await deleteCmsUser(userToDelete.id);
+      message = 'Usuario eliminado correctamente.';
+      showDeleteModal = false;
+      userToDelete = null;
+      await load();
+    } catch (e) {
+      error = e.message;
+    } finally {
+      deletingUser = false;
+    }
+  }
+
+  async function lockUserStatus(user) {
+    if (!user?.id || isOwnUser(user)) return;
+    const nextLocked = !Boolean(user.locked);
+
+    try {
+      error = '';
+      message = '';
+      await lockCmsUser(user.id, nextLocked);
+      message = user.locked ? 'Usuario reactivado.' : 'Usuario suspendido.';
+      await load();
+    } catch (e) {
+      error = e.message;
     }
   }
 
@@ -137,9 +190,17 @@
           <div class="h-12 rounded-lg bg-slate-100 animate-pulse"></div>
         {/each}
       </div>
-    {:else if list.length === 0}
+      {:else if list.length === 0}
       <p class="text-slate-500 text-sm">Aún no hay usuarios. Crea el primero con el formulario de arriba.</p>
-    {:else}
+      {:else}
+      <div class="flex items-center justify-between gap-4 py-4 font-semibold text-slate-800">
+        <div>
+          Usuario
+        </div>
+        <div>
+          Acciones
+        </div>
+      </div>
       <ul class="divide-y divide-slate-100">
         {#each list as u}
           <li class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
@@ -149,9 +210,101 @@
               </p>
               <p class="text-sm text-slate-500 truncate">{u.email}</p>
             </div>
+            <div class="flex gap-2">
+              <!--Block / allow user button-->
+              <button
+                type="button"
+                disabled={isOwnUser(u)}
+                class={`flex justify-center items-center w-10 h-10 border-2 rounded-lg ${
+                isOwnUser(u)
+                  ? 'border-slate-300 text-slate-400 bg-slate-100 cursor-not-allowed'
+                  : u.locked
+                  ?'border-green-500 text-green-600 hover:bg-green-500 hover:text-white'
+                  :'border-violet-500 text-violet-600 hover:bg-violet-500 hover:text-white'
+                }`}
+                aria-label={isOwnUser(u)
+                ? "No puedes suspender tu propio usuario"
+                : u.locked
+                ? 'Reactivar usuario.'
+                : 'Suspender usuario.'}
+                title={isOwnUser(u)
+                  ? "No puedes suspender tu propio usuario"
+                  : u.locked
+                    ? "Reactivar"
+                    :"Suspender"}
+                onclick={()=> !isOwnUser(u) && lockUserStatus(u)}>
+                  {#if u.locked}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  {:else}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                      <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clip-rule="evenodd" />
+                    </svg>
+                  {/if}
+                  
+
+              </button>
+              <!--Block / allow user button-->
+              <button 
+                type="button"
+                disabled={isOwnUser(u)}
+                class={`flex justify-center items-center  w-10 h-10 border-2  rounded-lg 
+                ${isOwnUser(u)
+                  ? "border-slate-300 text-slate-400 bg-slate-100 cursor-not-allowed"
+                  : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                }`}
+                aria-label="Eliminar Usuario" 
+                title={isOwnUser(u) 
+                  ? "No puedes modificar tu propio usuario" 
+                  : "Eliminar"}
+                onclick={()=> !isOwnUser(u) && openDeleteModal(u)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-3h4m-4 0a1 1 0 00-1 1v1h6V5a1 1 0 00-1-1m-4 0h4" />
+                </svg>
+              </button>
+            </div>
           </li>
         {/each}
       </ul>
     {/if}
   </div>
+  {#if showDeleteModal}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h4 class="text-lg font-semibold text-slate-800">Eliminar usuario</h4>
+
+        <p class="mt-3 text-sm text-slate-600">
+          ¿Seguro que quieres eliminar a
+          <span class="font-semibold text-slate-800">
+            {[userToDelete?.firstName, userToDelete?.lastName].filter(Boolean).join(' ') || userToDelete?.email}
+          </span>?
+        </p>
+
+        <p class="mt-2 text-sm text-slate-500">
+          Esta acción no se puede deshacer.
+        </p>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            onclick={closeDeleteModal}
+            disabled={deletingUser}
+          >
+            Cerrar
+          </button>
+
+          <button
+            type="button"
+            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            onclick={confirmDeleteUser}
+            disabled={deletingUser}
+          >
+            {deletingUser ? 'Eliminando...' : 'Eliminar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
