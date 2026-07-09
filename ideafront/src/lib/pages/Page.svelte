@@ -90,6 +90,12 @@
             prose-h3:text-2xl
             prose-h3:mt-6
             prose-h3:mb-2
+            prose-h4:text-xl
+            prose-h4:mt-5
+            prose-h4:mb-2
+            prose-h5:text-lg
+            prose-h5:mt-4
+            prose-h5:mb-2
             prose-a:text-white
             prose-a:underline
             prose-a:underline-offset-2
