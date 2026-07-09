@@ -12,6 +12,20 @@
   import {Image} from '@tiptap/extension-image';
   import { uploadImage } from './api.js';
   
+  const AlignedImage = Image.extend({
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        align: {
+          default: 'left',
+          parseHTML: (element) => element.getAttribute('data-align') || 'left',
+          renderHTML: (attributes) => ({
+            'data-align': attributes.align || 'left',
+          }),
+        },
+      };
+    },
+  });
 
   let {
     value = '',
@@ -61,7 +75,7 @@
           placeholder: placeholder || 'Escribe aquí el texto de la página...',
           emptyEditorClass: 'is-editor-empty',
         }),
-        Image.configure({
+        AlignedImage.configure({
           inline: false,
           allowBase64: false,
           HTMLAttributes: {
@@ -146,10 +160,6 @@ function setTextAlign(alignment) {
   editorState.editor?.chain().focus().setTextAlign(alignment).run();
 }
 
-// function unsetTextAlign() {
-//   editorState.editor?.chain().focus().unsetTextAlign().run();
-// }
-
 function setLink() {
   const previousUrl = editorState.editor?.getAttributes('link').href ?? '';
   const url = window.prompt('URL del enlace', previousUrl);
@@ -192,8 +202,8 @@ function deleteTable() {
 function setBlockType(value){
   const editor = editorState.editor;
   if (!editor) return;
-  if (value === "paragraph"){
-    editor.chain().focus.setParagraph().run();
+  if (value === 'paragraph'){
+    editor.chain().focus().setParagraph().run();
     return;
   }
   editor.chain().focus().setHeading({level: Number(value)}).run();
@@ -209,6 +219,21 @@ function getCurrentBlockType() {
   if (editor.isActive('heading', { level: 5 })) return '5';
 
   return 'paragraph';
+}
+
+function isImageSelected() {
+  return editorState.editor?.isActive('image') ?? false;
+}
+
+function getCurrentImageAlign() {
+  return editorState.editor?.getAttributes('image').align ?? 'left';
+}
+
+function setImageAlign(align) {
+  const editor = editorState.editor;
+  if (!editor || !editor.isActive('image')) return;
+
+  editor.chain().focus().updateAttributes('image', { align }).run();
 }
 
 function setFontSize(value) {
@@ -262,6 +287,7 @@ async function onInlineImageSelected(event) {
         src: data.path,
         alt: file.name,
         title: file.name,
+        align: 'left',
       })
       .run();
   } catch (err) {
@@ -712,6 +738,45 @@ async function onInlineImageSelected(event) {
         {/if}
       </button>
 
+      <button
+        type="button"
+        aria-label="Imagen izquierda"
+        title="Imagen izquierda"
+        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'left'}
+        class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'left'}
+        onclick={() => setImageAlign('left')}
+        disabled={!isImageSelected()}
+      >
+        L
+      </button>
+
+      <button
+        type="button"
+        aria-label="Imagen centrada"
+        title="Imagen centrada"
+        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'center'}
+        class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'center'}
+        onclick={() => setImageAlign('center')}
+        disabled={!isImageSelected()}
+      >
+        C
+      </button>
+
+      <button
+        type="button"
+        aria-label="Imagen derecha"
+        title="Imagen derecha"
+        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'right'}
+        class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'right'}
+        onclick={() => setImageAlign('right')}
+        disabled={!isImageSelected()}
+      >
+        R
+      </button>
+
     </div>
   {/if}
 
@@ -822,6 +887,30 @@ async function onInlineImageSelected(event) {
     height: auto;
     margin: 1rem 0;
     border-radius: 0.5rem;
+  }
+
+  :global(.rich-text-editor .ProseMirror img) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  :global(.rich-text-editor .ProseMirror img[data-align='left']) {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  :global(.rich-text-editor .ProseMirror img[data-align='center']) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  :global(.rich-text-editor .ProseMirror img[data-align='right']) {
+    margin-left: auto;
+    margin-right: 0;
   }
 
 </style>

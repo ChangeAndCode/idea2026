@@ -8,19 +8,6 @@
   let loading = true;
   let notFound = false;
 
-  /** Extrae la primera imagen del body y devuelve { imgSrc, bodyWithoutImg } */
-  function extractImageFromBody(html) {
-    if (!html || !html.includes('<img')) return { imgSrc: null, bodyWithoutImg: html };
-    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    const imgSrc = imgMatch ? imgMatch[1] : null;
-    // Quita el primer bloque que contiene solo la imagen (p+strong+img o p+img)
-    const bodyWithoutImg = html
-      .replace(/<p[^>]*>\s*(?:<strong[^>]*>\s*)?<img[^>]*>(?:\s*<\/strong>)?\s*<\/p>/i, '')
-      .replace(/<p[^>]*>\s*<img[^>]*>\s*<\/p>/i, '')
-      .trim();
-    return { imgSrc, bodyWithoutImg };
-  }
-
   async function load(s) {
     if (!s) return;
     loading = true;
@@ -45,13 +32,10 @@
     notFound = true;
     loading = false;
   }
-
   $: load(slug || 'inicio');
-  $: extracted = extractImageFromBody(body);
-  $: imgSrc = extracted.imgSrc;
-  $: bodyWithoutImg = extracted.bodyWithoutImg;
-  $: displayImage = image || imgSrc;
+  $: displayImage = image;
   $: displayImageSrc = displayImage ? mediaUrl(displayImage) : '';
+
 </script>
 
 {#if loading}
@@ -114,7 +98,7 @@
             prose-td:p-3
             prose-td:text-white/95"
           >
-            {@html bodyWithoutImg || body || '<p>Sin contenido.</p>'}
+            {@html body || '<p>Sin contenido.</p>'}
           </div>
         </div>
 
