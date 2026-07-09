@@ -343,6 +343,7 @@ router.get('/users', requireCmsAuth, async (req, res, next) => {
         firstName: u.first_name ?? '',
         lastName: u.last_name ?? '',
         createdAt: u.created_at,
+        locked: u.locked ?? false,
       }))
     );
   } catch (err) {
@@ -393,6 +394,76 @@ router.post('/users', requireCmsAuth, async (req, res, next) => {
       'No se pudo crear el usuario. Revisa que el correo no esté ya registrado y que la contraseña tenga al menos 8 caracteres.';
     if (process.env.NODE_ENV !== 'production') {
       console.error('Clerk createUser error:', status, errors.length ? errors : err.message, err);
+    }
+    err.status = status;
+    err.message = msg;
+    next(err);
+  }
+});
+
+/*
+Elimina un usuario de Clerk por ID. Requiere auth. Usa SDK oficial. Devuelve 204 si se eliminó, 404 si no existe.
+*/
+router.delete('/users/:id', requireCmsAuth, async (req, res, next) => {
+  try{
+    if (!process.env.CLERK_SECRET_KEY) 
+      return res.status(503).json({error: 'Configura CLERK_SECRET_KEY en el backend para eliminar usuarios.'});
+    const {id} = req.params;
+    if (!id) return res.status(400).json({error:"Falta ID de usuario"});
+    const auth = getAuth(req);
+    if (auth?.userId === id) {
+      return res.status(403).json({ error: 'No puedes eliminar tu propio usuario.' });
+    }
+    const clerk = createClerkClient({secretKey: process.env.CLERK_SECRET_KEY});
+    await clerk.users.deleteUser(id);
+    res.status(204).send();
+  } catch(err){
+    const status = err.statusCode ?? err.status ?? 422;
+    const errors = err.errors ?? err.data?.errors ?? err.body?.errors ?? [];
+    const first = errors[0];
+    const msg = first?.longMessage ?? first?.message ?? (err.message && err.message !== "Unprocessable Entity" ? err.message : null) ?? "No se pudo eliminar el usuario. Revisa que el ID sea correcto.";
+    if (process.env.NODE_ENV !== "production"){
+      console.error("Clerk deleteUser error: ", status, errors.length ? errors : err.message, err);
+    }
+    err.status = status;
+    err.message = msg;
+    next(err);
+  }
+});
+
+router.post('/users/:id/status', requireCmsAuth, async (req, res, next)=>{
+  try{
+    if (!process.env.CLERK_SECRET_KEY) 
+      return res.status(503).json({error: "configura CLERK_SECRET_KEY en el backend para cambiar el estado de usuarios."});
+    const {id} = req.params;
+    const {locked} = req.body || {};
+    if (!id) return res.status(400).json({error: "Falta ID de usuario"});
+    const auth = getAuth(req);
+    if (typeof locked !== "boolean") return res.status(400).json({error: "Debes enviar locked: true o false"});
+    if (auth?.userId === id){
+      return res.status(403).json({error: "No puedes suspender tu propia cuenta."});
+    }
+    const clerk = createClerkClient({secretKey: process.env.CLERK_SECRET_KEY});
+    if (locked === true){
+      await clerk.users.lockUser(id);
+      res.status(204).send();
+    } else if (locked === false){
+      await clerk.users.unlockUser(id);
+      res.status(204).send();
+    } else{
+      return res.status(400).json({error: "Debes enviar locked: true o false"});
+    }
+  } catch(err){
+    const status = err.statusCode ?? err.status ?? 422;
+    const errors = err.errors ?? err.data?.errors ?? err.body?.errors ?? [];
+    const first = errors[0];
+    const msg =
+      first?.longMessage ??
+      first?.message ??
+      (err.message && err.message !== "Unprocessable Entity" ? err.message : null) ??
+      "No se pudo cambiar el estado del usuario.";
+    if (process.env.NODE_ENV !== "production"){
+      console.error("Clerk lock/unlock error", status, errors.length ? errors : err.message, err);
     }
     err.status = status;
     err.message = msg;
