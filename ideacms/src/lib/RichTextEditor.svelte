@@ -44,7 +44,7 @@ let editorElement = $state();
         TextStyleKit.configure({
           fontSize: true,
           fontFamily: false,
-          color: false,
+          color: true,
           backgroundColor: false,
           lineHeight: false,
         }),
@@ -100,9 +100,9 @@ let editorElement = $state();
     editorState.editor?.chain().focus().setParagraph().run();
   }
 
-  function toggleHeading(level) {
-    editorState.editor?.chain().focus().toggleHeading({ level }).run();
-  }
+  // function toggleHeading(level) {
+  //   editorState.editor?.chain().focus().toggleHeading({ level }).run();
+  // }
 
   function toggleBold() {
     editorState.editor?.chain().focus().toggleBold().run();
@@ -135,9 +135,9 @@ function setTextAlign(alignment) {
   editorState.editor?.chain().focus().setTextAlign(alignment).run();
 }
 
-function unsetTextAlign() {
-  editorState.editor?.chain().focus().unsetTextAlign().run();
-}
+// function unsetTextAlign() {
+//   editorState.editor?.chain().focus().unsetTextAlign().run();
+// }
 
 function setLink() {
   const previousUrl = editorState.editor?.getAttributes('link').href ?? '';
@@ -219,6 +219,14 @@ function getCurrentFontSize() {
   return editor.getAttributes('textStyle').fontSize ?? '';
 }
 
+function setTextColor(color) {
+  editorState.editor?.chain().focus().setColor(color).run();
+}
+
+function getCurrentTextColor() {
+  return editorState.editor?.getAttributes('textStyle').color ?? '#1e3a8a';
+}
+
 </script>
 
 <div class="rich-text-editor space-y-3">
@@ -270,6 +278,19 @@ function getCurrentFontSize() {
           <option value="20px">20</option>
           <option value="24px">24</option>
         </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label for="text-color" class="sr-only">Color del texto</label>
+
+        <input
+          id="text-color"
+          type="color"
+          class="h-10 w-10 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+          value={getCurrentTextColor()}
+          oninput={(event) => setTextColor(event.currentTarget.value)}
+          title="Color del texto"
+        />
       </div>
 
       <button
