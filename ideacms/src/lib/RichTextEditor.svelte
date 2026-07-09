@@ -26,7 +26,7 @@ let editorElement = $state();
       element: editorElement,
       extensions:[
         StarterKit.configure({
-          heading: {levels:[2,3,4]},
+          heading: {levels:[2,3,4,5]},
           link: false,
           underline: false,
         }),
@@ -40,6 +40,13 @@ let editorElement = $state();
         TextAlign.configure({
           types: ['heading', 'paragraph'],
           alignments: ['left', 'center', 'right'],
+        }),
+        TextStyleKit.configure({
+          fontSize: true,
+          fontFamily: false,
+          color: false,
+          backgroundColor: false,
+          lineHeight: false,
         }),
         TableKit.configure({
           table: {
@@ -170,13 +177,104 @@ function deleteRow() {
 function deleteTable() {
   editorState.editor?.chain().focus().deleteTable().run();
 }
+
+function setBlockType(value){
+  const editor = editorState.editor;
+  if (!editor) return;
+  if (value === "paragraph"){
+    editor.chain().focus.setParagraph().run();
+    return;
+  }
+  editor.chain().focus().setHeading({level: Number(value)}).run();
+}
+
+function getCurrentBlockType() {
+  const editor = editorState.editor;
+  if (!editor) return 'paragraph';
+
+  if (editor.isActive('heading', { level: 2 })) return '2';
+  if (editor.isActive('heading', { level: 3 })) return '3';
+  if (editor.isActive('heading', { level: 4 })) return '4';
+  if (editor.isActive('heading', { level: 5 })) return '5';
+
+  return 'paragraph';
+}
+
+function setFontSize(value) {
+  const editor = editorState.editor;
+  if (!editor) return;
+
+  if (!value) {
+    editor.chain().focus().unsetFontSize().run();
+    return;
+  }
+
+  editor.chain().focus().setFontSize(value).run();
+}
+
+function getCurrentFontSize() {
+  const editor = editorState.editor;
+  if (!editor) return '';
+
+  return editor.getAttributes('textStyle').fontSize ?? '';
+}
+
 </script>
 
 <div class="rich-text-editor space-y-3">
   {#if editorState.editor}
     <div class="flex flex-wrap gap-2 rounded-lg border border-slate-300 p-2">
+
+      <select
+        title="Headings"
+        class="cms-input !w-auto !min-h-0 !py-1.5 !px-3 text-sm"
+        value={getCurrentBlockType()}
+        onchange={(event) => setBlockType(event.currentTarget.value)}
+      >
+        <option value="paragraph">H</option>
+        <option value="2">H2</option>
+        <option value="3">H3</option>
+        <option value="4">H4</option>
+        <option value="5">H5</option>
+      </select>
+
+      <div class="relative">
+        <svg
+          class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 align-middle text-slate-500"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 6h4m4 0h-4m0 0v12M4 11h3m3 0H7m0 0v7"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <select
+          class="cms-input !w-auto !min-h-0 !pr-8 text-sm"
+          value={getCurrentFontSize()}
+          onchange={(event) => setFontSize(event.currentTarget.value)}
+          aria-label="Tamaño de fuente"
+        >
+          <option value=""></option>
+          <option value="10px">10</option>
+          <option value="12px">12</option>
+          <option value="14px">14</option>
+          <option value="16px">16</option>
+          <option value="18px">18</option>
+          <option value="20px">20</option>
+          <option value="24px">24</option>
+        </select>
+      </div>
+
       <button
         type="button"
+        title="Paragraph"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={editorState.editor.isActive('paragraph')}
         class:border-slate-400={editorState.editor.isActive('paragraph')}
@@ -187,26 +285,7 @@ function deleteTable() {
 
       <button
         type="button"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
-        class:bg-slate-200={editorState.editor.isActive('heading', { level: 2 })}
-        class:border-slate-400={editorState.editor.isActive('heading', { level: 2 })}
-        onclick={() => toggleHeading(2)}
-      >
-        H2
-      </button>
-
-      <button
-        type="button"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
-        class:bg-slate-200={editorState.editor.isActive('heading', { level: 3 })}
-        class:border-slate-400={editorState.editor.isActive('heading', { level: 3 })}
-        onclick={() => toggleHeading(3)}
-      >
-        H3
-      </button>
-
-      <button
-        type="button"
+        title="Bold"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm font-bold"
         class:bg-slate-200={editorState.editor.isActive('bold')}
         class:border-slate-400={editorState.editor.isActive('bold')}
@@ -217,6 +296,7 @@ function deleteTable() {
 
       <button
         type="button"
+        title="Italic"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm italic"
         class:bg-slate-200={editorState.editor.isActive('italic')}
         class:border-slate-400={editorState.editor.isActive('italic')}
@@ -227,6 +307,7 @@ function deleteTable() {
 
       <button
         type="button"
+        title="Underline"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm underline"
         class:bg-slate-200={editorState.editor.isActive('underline')}
         class:border-slate-400={editorState.editor.isActive('underline')}
@@ -237,6 +318,7 @@ function deleteTable() {
 
       <button
         type="button"
+        title="Unorder List"
         aria-label="unorderList"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
         class:bg-slate-200={editorState.editor.isActive('bulletList')}
@@ -256,6 +338,7 @@ function deleteTable() {
 
       <button
         type="button"
+        title="Order List"
         aria-label="orderList"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
         class:bg-slate-200={editorState.editor.isActive('orderedList')}
@@ -274,6 +357,7 @@ function deleteTable() {
       </button>
       <button
         type="button"
+        title="Strikethrough"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm line-through"
         class:bg-slate-200={editorState.editor.isActive('strike')}
         class:border-slate-400={editorState.editor.isActive('strike')}
@@ -284,6 +368,7 @@ function deleteTable() {
 
       <button
         type="button"
+        title="Highlight"
         aria-label="highlight"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={editorState.editor.isActive('highlight')}
@@ -559,6 +644,18 @@ function deleteTable() {
     margin: 0.875rem 0 0.5rem;
   }
 
+  :global(.rich-text-editor .ProseMirror h4) {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0.75rem 0 0.5rem;
+  }
+
+  :global(.rich-text-editor .ProseMirror h5) {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0.75rem 0 0.5rem;
+  }
+
   :global(.rich-text-editor .ProseMirror ul) {
     list-style: disc;
     padding-left: 1.5rem;
@@ -619,4 +716,7 @@ function deleteTable() {
     background-color: #2563eb;
     width: 4px;
   }
+
+
+
 </style>
