@@ -6,9 +6,11 @@
   import Link from '@tiptap/extension-link';
   import Placeholder from '@tiptap/extension-placeholder';
   import Highlight from '@tiptap/extension-highlight';
-import TextAlign from '@tiptap/extension-text-align';
-import { TableKit } from '@tiptap/extension-table';
-import { TextStyleKit } from '@tiptap/extension-text-style';
+  import TextAlign from '@tiptap/extension-text-align';
+  import { TableKit } from '@tiptap/extension-table';
+  import { TextStyleKit } from '@tiptap/extension-text-style';
+  import {Image} from '@tiptap/extension-image';
+  import { uploadImage } from './api.js';
   
 
   let {
@@ -18,8 +20,10 @@ import { TextStyleKit } from '@tiptap/extension-text-style';
     onChange = () => {},
   } = $props();
 
-let editorElement = $state();
+  let editorElement = $state();
   let editorState = $state({ editor: null, version: 0 });
+  let inlineImageInput = $state();
+  let inlineImageUploading = $state(false);
 
   onMount(()=> {
     const editor = new Editor({
@@ -56,6 +60,13 @@ let editorElement = $state();
         Placeholder.configure({
           placeholder: placeholder || 'Escribe aquí el texto de la página...',
           emptyEditorClass: 'is-editor-empty',
+        }),
+        Image.configure({
+          inline: false,
+          allowBase64: false,
+          HTMLAttributes: {
+            class: 'editor-inline-image',
+          },
         }),
       ],
       content: value || "",
@@ -227,9 +238,50 @@ function getCurrentTextColor() {
   return editorState.editor?.getAttributes('textStyle').color ?? '#1e3a8a';
 }
 
+function openInlineImagePicker() {
+  inlineImageInput?.click();
+}
+
+async function onInlineImageSelected(event) {
+  const file = event.currentTarget?.files?.[0];
+  if (!file) return;
+
+  inlineImageUploading = true;
+
+  try {
+    const data = await uploadImage(file);
+
+    if (!data?.path) {
+      throw new Error('No se recibió la ruta de la imagen');
+    }
+
+    editorState.editor
+      ?.chain()
+      .focus()
+      .setImage({
+        src: data.path,
+        alt: file.name,
+        title: file.name,
+      })
+      .run();
+  } catch (err) {
+    alert(err instanceof Error ? err.message : 'Error al subir la imagen');
+  } finally {
+    inlineImageUploading = false;
+    event.currentTarget.value = '';
+  }
+}
+
 </script>
 
 <div class="rich-text-editor space-y-3">
+  <input
+    bind:this={inlineImageInput}
+    type="file"
+    accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+    class="hidden"
+    onchange={onInlineImageSelected}
+  />
   {#if editorState.editor}
     <div class="flex flex-wrap gap-2 rounded-lg border border-slate-300 p-2">
       <!--HEADINGS-->
@@ -525,7 +577,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--DELETE TABLES-->
       <button
         type="button"
         aria-label="deleteTable"
@@ -548,7 +600,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--ADD COLUMNS IN TABLES-->
       <button
         type="button"
         aria-label="addColumn"
@@ -568,7 +620,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--ADD ROWS IN TABLES-->
       <button
         type="button"
         aria-label="addRow"
@@ -588,7 +640,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--DELETE COLUMNS IN TABLES-->
       <button
         type="button"
         aria-label="deleteColumn"
@@ -609,7 +661,7 @@ function getCurrentTextColor() {
           />
         </svg>
       </button>
-
+      <!--DELETE ROWS IN TABLES-->
       <button
         type="button"
         aria-label="deleteRow"
@@ -629,6 +681,35 @@ function getCurrentTextColor() {
             fill-rule="evenodd"
           />
         </svg>
+      </button>
+      <!--ADD IMAGE-->
+      <button
+        type="button"
+        aria-label="Insertar imagen"
+        title="Insertar imagen"
+        class="cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
+        onclick={openInlineImagePicker}
+        disabled={inlineImageUploading}
+      >
+        {#if inlineImageUploading}
+          <span class="text-xs">...</span>
+        {:else}
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 18.25 8.05 14.2c.78-.78 1.17-1.17 1.63-1.32a2.3 2.3 0 0 1 1.42 0c.46.15.85.54 1.63 1.32l5.49 5.55M14.27 15.94l.34-.34c.8-.8 1.2-1.2 1.67-1.35a2.34 2.34 0 0 1 1.25.01c.46.16.85.57 1.64 1.38L20 16.5M11 4H7.2c-1.12 0-1.68 0-2.11.22-.38.19-.68.5-.88.87C4 5.52 4 6.08 4 7.2v9.6c0 1.12 0 1.68.22 2.11.19.38.5.68.87.88.43.21.99.21 2.11.21h9.6c1.12 0 1.68 0 2.11-.22.38-.19.68-.5.88-.87.21-.43.21-.99.21-2.11V13M18 9V3M15 6h6"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        {/if}
       </button>
 
     </div>
@@ -735,6 +816,12 @@ function getCurrentTextColor() {
     width: 4px;
   }
 
-
+  :global(.rich-text-editor .ProseMirror img) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+  }
 
 </style>
