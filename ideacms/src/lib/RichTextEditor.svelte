@@ -809,13 +809,13 @@ async function onInlineImageSelected(event) {
 
   <div
     bind:this={editorElement}
-    class="cms-input min-h-[20rem] py-3 leading-relaxed"
+    class="cms-input min-h-0 h-[55vh] max-h-[36rem] overflow-y-auto py-3 leading-relaxed"
   ></div>
 </div>
 
 <style>
   :global(.rich-text-editor .ProseMirror) {
-    min-height: 20rem;
+    min-height: 100%;
     outline: none;
   }
 
