@@ -749,7 +749,15 @@ async function onInlineImageSelected(event) {
         onclick={() => setImageAlign('left')}
         disabled={!isImageSelected()}
       >
-        L
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M3 5h18v2H3V5zm0 14h18v-2H3v2zm0-4h8V9H3v6zm10 0h8v-2h-8v2zm0-4h8V9h-8v2z" />
+        </svg>
       </button>
 
       <button
@@ -763,7 +771,15 @@ async function onInlineImageSelected(event) {
         onclick={() => setImageAlign('center')}
         disabled={!isImageSelected()}
       >
-        C
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M3 5h18v2H3V5zm0 14h18v-2H3v2zm5-4h8V9H8v6z" />
+        </svg>
       </button>
 
       <button
@@ -777,7 +793,15 @@ async function onInlineImageSelected(event) {
         onclick={() => setImageAlign('right')}
         disabled={!isImageSelected()}
       >
-        R
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M21 7H3V5h18v2zm0 10H3v2h18v-2zm0-8h-8v6h8V9zm-10 4H3v2h8v-2zm0-4H3v2h8V9z" />
+        </svg>
       </button>
 
     </div>
