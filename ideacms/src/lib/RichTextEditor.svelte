@@ -233,7 +233,7 @@ function setImageAlign(align) {
   const editor = editorState.editor;
   if (!editor || !editor.isActive('image')) return;
 
-  editor.chain().focus().updateAttributes('image', { align }).run();
+  editor.chain().updateAttributes('image', { align }).run();
 }
 
 function setFontSize(value) {
@@ -745,6 +745,7 @@ async function onInlineImageSelected(event) {
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'left'}
         class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'left'}
+        onmousedown={(event) => event.preventDefault()}
         onclick={() => setImageAlign('left')}
         disabled={!isImageSelected()}
       >
@@ -758,6 +759,7 @@ async function onInlineImageSelected(event) {
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'center'}
         class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'center'}
+        onmousedown={(event) => event.preventDefault()}
         onclick={() => setImageAlign('center')}
         disabled={!isImageSelected()}
       >
@@ -771,6 +773,7 @@ async function onInlineImageSelected(event) {
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'right'}
         class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'right'}
+        onmousedown={(event) => event.preventDefault()}
         onclick={() => setImageAlign('right')}
         disabled={!isImageSelected()}
       >

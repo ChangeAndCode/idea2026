@@ -122,4 +122,29 @@
     padding: 0 0.15rem;
     border-radius: 0.2rem;
   }
+
+  .page-body :global(img) {
+    display: block;
+    width: auto;
+    max-width: min(100%, 42rem);
+    height: auto;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .page-body :global(img[data-align='left']) {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .page-body :global(img[data-align='center']) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .page-body :global(img[data-align='right']) {
+    margin-left: auto;
+    margin-right: 0;
+  }
 </style>
