@@ -916,4 +916,11 @@ async function onInlineImageSelected(event) {
     margin-right: 0;
   }
 
+  :global(.rich-text-editor .ProseMirror img.ProseMirror-selectednode) {
+    outline: 3px solid #2563eb;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.18);
+    border-radius: 0.75rem;
+  }
+
 </style>
