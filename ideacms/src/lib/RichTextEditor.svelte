@@ -39,6 +39,128 @@
   let inlineImageInput = $state();
   let inlineImageUploading = $state(false);
 
+  function cleanPastedInlineStyle(styleText = '') {
+    const allowedProperties = new Set([
+      'background-color',
+      'color',
+      'font-size',
+      'font-style',
+      'font-weight',
+      'list-style-type',
+      'margin-left',
+      'padding-left',
+      'text-align',
+      'text-decoration',
+      'text-indent',
+    ]);
+
+    return styleText
+      .split(';')
+      .map((declaration) => declaration.trim())
+      .filter(Boolean)
+      .map((declaration) => {
+        const separatorIndex = declaration.indexOf(':');
+        if (separatorIndex === -1) return null;
+
+        const property = declaration.slice(0, separatorIndex).trim().toLowerCase();
+        const value = declaration.slice(separatorIndex + 1).trim();
+
+        if (!property || !value || property.startsWith('mso-') || !allowedProperties.has(property)) {
+          return null;
+        }
+
+        return `${property}: ${value}`;
+      })
+      .filter(Boolean)
+      .join('; ');
+  }
+
+  function normalizeWordPaste(html) {
+    if (!html) return html;
+
+    const looksLikeWordContent = /class=(["'])?Mso|mso-|<o:p|urn:schemas-microsoft-com:office/i.test(html);
+    if (!looksLikeWordContent) return html;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    doc.querySelectorAll('meta, link, style, script, title, xml').forEach((node) => node.remove());
+
+    doc.querySelectorAll('o\\:p').forEach((node) => {
+      const text = node.textContent?.trim();
+
+      if (text) {
+        node.replaceWith(doc.createTextNode(text));
+        return;
+      }
+
+      node.remove();
+    });
+
+    const commentsWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_COMMENT);
+    const comments = [];
+
+    while (commentsWalker.nextNode()) {
+      comments.push(commentsWalker.currentNode);
+    }
+
+    comments.forEach((comment) => comment.remove());
+
+    doc.body.querySelectorAll('*').forEach((element) => {
+      const attributes = Array.from(element.attributes);
+
+      attributes.forEach((attribute) => {
+        const attributeName = attribute.name.toLowerCase();
+
+        if (attributeName === 'style') {
+          const cleanedStyle = cleanPastedInlineStyle(attribute.value);
+
+          if (cleanedStyle) {
+            element.setAttribute('style', cleanedStyle);
+          } else {
+            element.removeAttribute('style');
+          }
+
+          return;
+        }
+
+        if (attributeName === 'align') {
+          const alignValue = attribute.value.toLowerCase();
+
+          if (['left', 'center', 'right', 'justify'].includes(alignValue)) {
+            const currentStyle = element.getAttribute('style') ?? '';
+            const mergedStyle = cleanPastedInlineStyle(`${currentStyle}; text-align: ${alignValue}`);
+
+            if (mergedStyle) {
+              element.setAttribute('style', mergedStyle);
+            }
+          }
+
+          element.removeAttribute('align');
+          return;
+        }
+
+        if (
+          attributeName === 'class' ||
+          attributeName === 'lang' ||
+          attributeName.startsWith('xmlns') ||
+          attributeName.startsWith('o:') ||
+          attributeName.startsWith('v:')
+        ) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    });
+
+    doc.body.querySelectorAll('span').forEach((span) => {
+      if (!span.attributes.length) {
+        span.replaceWith(...Array.from(span.childNodes));
+      }
+    });
+
+    return doc.body.innerHTML;
+  }
+
   onMount(()=> {
     const editor = new Editor({
       element: editorElement,
@@ -57,7 +179,7 @@
         Highlight,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
-          alignments: ['left', 'center', 'right'],
+          alignments: ['left', 'center', 'right', 'justify'],
         }),
         TextStyleKit.configure({
           fontSize: true,
@@ -85,6 +207,9 @@
       ],
       content: value || "",
       editable: !disabled,
+      editorProps: {
+        transformPastedHTML: (html) => normalizeWordPaste(html),
+      },
       onUpdate: ({ editor }) => {
         onChange(editor.getHTML());
       },
@@ -158,6 +283,10 @@ function toggleHighlight() {
 
 function setTextAlign(alignment) {
   editorState.editor?.chain().focus().setTextAlign(alignment).run();
+}
+
+function isTextAlignActive(alignment) {
+  return editorState.editor?.isActive({ textAlign: alignment }) ?? false;
 }
 
 function setLink() {
@@ -259,8 +388,16 @@ function setTextColor(color) {
   editorState.editor?.chain().focus().setColor(color).run();
 }
 
+function unsetTextColor() {
+  editorState.editor?.chain().focus().unsetColor().run();
+}
+
 function getCurrentTextColor() {
-  return editorState.editor?.getAttributes('textStyle').color ?? '#1e3a8a';
+  return editorState.editor?.getAttributes('textStyle').color ?? '';
+}
+
+function hasCustomTextColor() {
+  return !!editorState.editor?.getAttributes('textStyle').color;
 }
 
 function openInlineImagePicker() {
@@ -350,7 +487,7 @@ async function onInlineImageSelected(event) {
         </select>
       </div>
       <!--COLOR-->
-      <div class="flex items-center gap-2">
+      <!-- <div class="flex items-center gap-2">
         <label for="text-color" class="sr-only">Color del texto</label>
 
         <input
@@ -358,6 +495,44 @@ async function onInlineImageSelected(event) {
           type="color"
           class="h-10 w-10 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
           value={getCurrentTextColor()}
+          oninput={(event) => setTextColor(event.currentTarget.value)}
+          title="Color del texto"
+        />
+      </div> -->
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+          class:bg-slate-200={!hasCustomTextColor()}
+          class:border-slate-400={!hasCustomTextColor()}
+          onclick={unsetTextColor}
+          title="Color del sitio"
+        >
+          Auto
+        </button>
+
+        <button
+          type="button"
+          class="h-10 w-10 rounded-lg border border-slate-300"
+          style="background-color: #000000;"
+          onclick={() => setTextColor('#000000')}
+          title="Negro"
+        ></button>
+
+        <button
+          type="button"
+          class="h-10 w-10 rounded-lg border border-slate-400"
+          style="background-color: #ffffff;"
+          onclick={() => setTextColor('#ffffff')}
+          title="Blanco"
+        ></button>
+
+        <input
+          id="text-color"
+          type="color"
+          class="h-10 w-10 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
+          value={getCurrentTextColor() || '#000000'}
           oninput={(event) => setTextColor(event.currentTarget.value)}
           title="Color del texto"
         />
@@ -513,6 +688,8 @@ async function onInlineImageSelected(event) {
         aria-label="left"
         title="Left Text"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class:bg-slate-200={isTextAlignActive('left')}
+        class:border-slate-400={isTextAlignActive('left')}
         onclick={() => setTextAlign('left')}
       >
         <svg
@@ -538,6 +715,8 @@ async function onInlineImageSelected(event) {
         aria-label="center"
         title="Center Text"
         class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class:bg-slate-200={isTextAlignActive('center')}
+        class:border-slate-400={isTextAlignActive('center')}
         onclick={() => setTextAlign('center')}
       >
         <svg
@@ -562,6 +741,8 @@ async function onInlineImageSelected(event) {
         aria-label="right"
         title="Right Text"
         class="cms-btn-secondary !py-1. !px-2 text-sm"
+        class:bg-slate-200={isTextAlignActive('right')}
+        class:border-slate-400={isTextAlignActive('right')}
         onclick={() => setTextAlign('right')}
       >
         <svg
@@ -573,6 +754,32 @@ async function onInlineImageSelected(event) {
         >
           <path
             d="M20 18H10M20 14H4M20 10H10M20 6H4"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <!--JUSTIFY TEXT-->
+      <button
+        type="button"
+        aria-label="justify"
+        title="Justify Text"
+        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+        class:bg-slate-200={isTextAlignActive('justify')}
+        class:border-slate-400={isTextAlignActive('justify')}
+        onclick={() => setTextAlign('justify')}
+      >
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M4 6H20M4 10H20M4 14H20M4 18H20"
             stroke="currentColor"
             stroke-width="2"
             stroke-linecap="round"
