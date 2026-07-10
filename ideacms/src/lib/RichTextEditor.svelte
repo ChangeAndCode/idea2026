@@ -910,19 +910,13 @@ async function onInlineImageSelected(event) {
 
   :global(.rich-text-editor .ProseMirror img) {
     display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 1rem 0;
-    border-radius: 0.5rem;
-  }
-
-  :global(.rich-text-editor .ProseMirror img) {
-    display: block;
-    max-width: 100%;
+    width: auto;
+    max-width: min(100%, 42rem);
     height: auto;
     margin-top: 1rem;
     margin-bottom: 1rem;
     border-radius: 0.5rem;
+    transition: margin 0.15s ease, box-shadow 0.15s ease, outline-color 0.15s ease;
   }
 
   :global(.rich-text-editor .ProseMirror img[data-align='left']) {
