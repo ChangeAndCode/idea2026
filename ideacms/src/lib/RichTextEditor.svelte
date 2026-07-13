@@ -487,19 +487,6 @@ async function onInlineImageSelected(event) {
         </select>
       </div>
       <!--COLOR-->
-      <!-- <div class="flex items-center gap-2">
-        <label for="text-color" class="sr-only">Color del texto</label>
-
-        <input
-          id="text-color"
-          type="color"
-          class="h-10 w-10 cursor-pointer rounded-lg border border-slate-300 bg-white p-1"
-          value={getCurrentTextColor()}
-          oninput={(event) => setTextColor(event.currentTarget.value)}
-          title="Color del texto"
-        />
-      </div> -->
-
       <div class="flex items-center gap-2">
         <button
           type="button"
