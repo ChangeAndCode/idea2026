@@ -14,6 +14,7 @@
   let signInEl = $state(null);
   let sidebarOpen = $state(false);
   let clerkError = $state(null);
+  let currentUserId = $state('');
 
   onMount(async () => {
     const key = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -72,11 +73,13 @@
       clerkRef = clerk;
       clerkReady = true;
       isSignedIn = clerk.isSignedIn;
+      currentUserId = clerk.user?.id ?? '';
       if (isSignedIn && clerk.session) {
         setClerkGetToken(() => clerk.session.getToken());
       }
       clerk.addListener(() => {
         isSignedIn = clerk.isSignedIn;
+        currentUserId = clerk.user?.id ?? '';
         if (clerk.isSignedIn && clerk.session) {
           setClerkGetToken(() => clerk.session.getToken());
         }
@@ -291,7 +294,7 @@
         {:else if path === 'create'}
           <PageForm slug={null} />
         {:else if path === 'users'}
-          <UserManagement />
+          <UserManagement {currentUserId}/>
         {:else}
           <PageList />
         {/if}
