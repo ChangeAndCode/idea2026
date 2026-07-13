@@ -8,19 +8,6 @@
   let loading = true;
   let notFound = false;
 
-  /** Extrae la primera imagen del body y devuelve { imgSrc, bodyWithoutImg } */
-  function extractImageFromBody(html) {
-    if (!html || !html.includes('<img')) return { imgSrc: null, bodyWithoutImg: html };
-    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    const imgSrc = imgMatch ? imgMatch[1] : null;
-    // Quita el primer bloque que contiene solo la imagen (p+strong+img o p+img)
-    const bodyWithoutImg = html
-      .replace(/<p[^>]*>\s*(?:<strong[^>]*>\s*)?<img[^>]*>(?:\s*<\/strong>)?\s*<\/p>/i, '')
-      .replace(/<p[^>]*>\s*<img[^>]*>\s*<\/p>/i, '')
-      .trim();
-    return { imgSrc, bodyWithoutImg };
-  }
-
   async function load(s) {
     if (!s) return;
     loading = true;
@@ -45,13 +32,10 @@
     notFound = true;
     loading = false;
   }
-
   $: load(slug || 'inicio');
-  $: extracted = extractImageFromBody(body);
-  $: imgSrc = extracted.imgSrc;
-  $: bodyWithoutImg = extracted.bodyWithoutImg;
-  $: displayImage = image || imgSrc;
+  $: displayImage = image;
   $: displayImageSrc = displayImage ? mediaUrl(displayImage) : '';
+
 </script>
 
 {#if loading}
@@ -78,9 +62,43 @@
         <!-- Columna izquierda: solo texto (sin imagen embebida) -->
         <div class="flex-1 min-w-0 order-2 md:order-1 md:flex-[1_1_55%]">
           <div
-            class="page-body text-white/95 text-base leading-relaxed prose prose-invert max-w-none prose-headings:text-white prose-headings:font-bold prose-headings:text-lg prose-p:text-white/95 prose-a:text-white prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-idea-yellow prose-strong:text-white prose-ul:text-white/95 prose-li:text-white/95 prose-ul:my-4 prose-li:my-1"
+            class="page-body prose prose-invert max-w-none text-white/95
+            prose-p:text-white/95
+            prose-strong:text-white
+            prose-em:text-white/95
+            prose-headings:text-white
+            prose-headings:font-bold
+            prose-h2:text-3xl
+            prose-h2:mt-8
+            prose-h2:mb-3
+            prose-h3:text-2xl
+            prose-h3:mt-6
+            prose-h3:mb-2
+            prose-h4:text-xl
+            prose-h4:mt-5
+            prose-h4:mb-2
+            prose-h5:text-lg
+            prose-h5:mt-4
+            prose-h5:mb-2
+            prose-a:text-white
+            prose-a:underline
+            prose-a:underline-offset-2
+            hover:prose-a:text-idea-yellow
+            prose-ul:text-white/95
+            prose-ol:text-white/95
+            prose-li:text-white/95
+            prose-table:w-full
+            prose-table:border-collapse
+            prose-th:border
+            prose-th:border-white/25
+            prose-th:p-3
+            prose-th:text-white
+            prose-td:border
+            prose-td:border-white/25
+            prose-td:p-3
+            prose-td:text-white/95"
           >
-            {@html bodyWithoutImg || body || '<p>Sin contenido.</p>'}
+            {@html body || '<p>Sin contenido.</p>'}
           </div>
         </div>
 
@@ -97,3 +115,36 @@
   </section>
 {/if}
 
+<style>
+  .page-body :global(mark) {
+    background: #fee68a;
+    color: #0f2f7a;
+    padding: 0 0.15rem;
+    border-radius: 0.2rem;
+  }
+
+  .page-body :global(img) {
+    display: block;
+    width: auto;
+    max-width: min(100%, 42rem);
+    height: auto;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .page-body :global(img[data-align='left']) {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .page-body :global(img[data-align='center']) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .page-body :global(img[data-align='right']) {
+    margin-left: auto;
+    margin-right: 0;
+  }
+</style>

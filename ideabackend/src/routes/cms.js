@@ -7,10 +7,11 @@ import { getAuth } from '@clerk/express';
 import { createClerkClient } from '@clerk/backend';
 import { getDb } from '../db/mongo.js';
 import { config } from '../config.js';
+import sanitizeHtml from 'sanitize-html';
 
 const router = Router();
 
-const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']);
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
 
 const uploadStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -32,8 +33,8 @@ const upload = multer({
   storage: uploadStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const ok = /^image\/(jpeg|png|gif|webp|svg\+xml)$/.test(file.mimetype);
-    cb(ok ? null : new Error('Solo se permiten imágenes (JPEG, PNG, GIF, WebP, SVG)'), ok);
+    const ok = /^image\/(jpeg|png|gif|webp)$/.test(file.mimetype);
+    cb(ok ? null : new Error('Solo se permiten imágenes (JPEG, PNG, GIF, WebP)'), ok);
   },
 });
 
@@ -46,6 +47,70 @@ function requireCmsAuth(req, res, next) {
   }
   next();
 }
+
+function sanitizePageBody(html = '') {
+  return sanitizeHtml(String(html), {
+    allowedTags: [
+      'p', 'br',
+      'h2', 'h3', 'h4', 'h5',
+      'strong', 'b', 'em', 'i', 'u', 's',
+      'span', 'mark',
+      'ul', 'ol', 'li',
+      'a',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'img'
+    ],
+    allowedAttributes: {
+      '*': ['style'],
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'alt', 'title', 'data-align', 'class'],
+      table: ['style'],
+      thead: ['style'],
+      tbody: ['style'],
+      tr: ['style'],
+      th: ['style'],
+      td: ['style'],
+      p: ['style'],
+      h2: ['style'],
+      h3: ['style'],
+      h4: ['style'],
+      h5: ['style'],
+      span: ['style'],
+      mark: ['style'],
+      ul: ['style'],
+      ol: ['style'],
+      li: ['style']
+    },
+    allowedStyles: {
+      '*': {
+        color: [
+          /^#[0-9a-f]{3,8}$/i,
+          /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/i,
+          /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(0|1|0?\.\d+)\s*\)$/i
+        ],
+        'background-color': [
+          /^#[0-9a-f]{3,8}$/i,
+          /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/i,
+          /^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*(0|1|0?\.\d+)\s*\)$/i
+        ],
+        'font-size': [/^\d+(px|rem|em|%)$/i],
+        'text-align': [/^left$/i, /^center$/i, /^right$/i, /^justify$/i],
+        'text-decoration': [/^underline$/i, /^line-through$/i, /^none$/i]
+      }
+    },
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesByTag: {
+      img: ['http', 'https']
+    },
+    allowProtocolRelative: false,
+    disallowedTagsMode: 'discard',
+    enforceHtmlBoundary: true,
+    transformTags: {
+      a: sanitizeHtml.simpleTransform('a', { rel: 'noopener noreferrer' }, true)
+    }
+  });
+}
+
 
 /** Subida de imagen para el CMS. Devuelve { path: '/uploads/<archivo>' } para guardar en MongoDB. */
 router.post('/upload', requireCmsAuth, (req, res) => {
@@ -262,7 +327,15 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
     const existing = await col.findOne({ slug });
     if (existing) return res.status(409).json({ error: 'Ya existe una página con ese slug' });
     const now = new Date();
-    const doc = { slug, title, body: body ?? '', image: image ?? '', created_at: now, updated_at: now };
+    const safeBody = sanitizePageBody(body ?? '');
+    const doc = {
+      slug,
+      title,
+      body: safeBody,
+      image: image ?? '',
+      created_at: now,
+      updated_at: now
+    };
     await col.insertOne(doc);
     const { _id, ...rest } = doc;
     res.status(201).json({ id: _id?.toString(), ...rest });
@@ -280,7 +353,7 @@ router.put('/pages/:slug', requireCmsAuth, async (req, res, next) => {
     const col = db.collection('cms_pages');
     const update = { updated_at: new Date() };
     if (title !== undefined) update.title = title;
-    if (body !== undefined) update.body = body;
+    if (body !== undefined) update.body = sanitizePageBody(body);
     if (image !== undefined) update.image = image ?? '';
     const r = await col.findOneAndUpdate(
       { slug },

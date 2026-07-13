@@ -2,6 +2,7 @@
   import { route } from '../stores/route.js';
   import { getPage, createPage, updatePage } from './api.js';
   import ImageUploadField from './ImageUploadField.svelte';
+  import RichTextEditor from './RichTextEditor.svelte';
 
   let { slug = null } = $props();
 
@@ -173,12 +174,13 @@
             </p>
           </div>
           <label for="body" class="cms-label">Texto principal</label>
-          <textarea
-            id="body"
-            class="cms-input font-mono text-sm min-h-[20rem] leading-relaxed resize-y"
-            bind:value={body}
-            placeholder="<p>Escribe aquí el texto de la página...</p>"
-          ></textarea>
+          <div>
+            <RichTextEditor
+              value={body}
+              onChange={(html) => (body = html)}
+              placeholder="<p>Escribe aquí el texto de la página...</p>"
+            />
+          </div>
           <ul class="text-sm text-slate-500 mt-1.5 space-y-1.5 list-disc list-inside">
             <li>Puedes usar etiquetas como &lt;p&gt;, &lt;strong&gt;, &lt;a href=&quot;…&quot;&gt; y listas.</li>
             <li>Si pegas texto plano, envuelve cada párrafo en &lt;p&gt;…&lt;/p&gt; para que se vea mejor.</li>
