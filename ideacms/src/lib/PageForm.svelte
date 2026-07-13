@@ -174,12 +174,6 @@
             </p>
           </div>
           <label for="body" class="cms-label">Texto principal</label>
-          <!-- <textarea
-            id="body"
-            class="cms-input font-mono text-sm min-h-[20rem] leading-relaxed resize-y"
-            bind:value={body}
-            placeholder="<p>Escribe aquí el texto de la página...</p>"
-          ></textarea> -->
           <div>
             <RichTextEditor
               value={body}
