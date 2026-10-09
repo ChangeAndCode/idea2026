@@ -7,6 +7,7 @@
   import SiteConfig from './lib/SiteConfig.svelte';
   import LandingConfig from './lib/LandingConfig.svelte';
   import UserManagement from './lib/UserManagement.svelte';
+  import VisitStatistics from './lib/VisitStatistics.svelte';
 
   let clerkReady = $state(false);
   let isSignedIn = $state(false);
@@ -117,11 +118,15 @@
   function goUsers() {
     route.set({ path: 'users', slug: null });
   }
+  function goAnalytics() {
+    route.set({ path: 'analytics', slug: null });
+  }
 
   const isContent = $derived(path === 'list' || path === 'edit' || path === 'create');
   const isLanding = $derived(path === 'landing');
   const isSite = $derived(path === 'site');
   const isUsers = $derived(path === 'users');
+  const isAnalytics = $derived(path === 'analytics');
   const pageTitle = $derived(
     isContent
       ? (path === 'create' ? 'Nueva página' : path === 'edit' && slug ? 'Editar página' : 'Contenido')
@@ -131,6 +136,8 @@
           ? 'Menú y logos'
           : isUsers
             ? 'Usuarios del CMS'
+              : isAnalytics
+                ? 'Estadísticas de visitas'
             : 'Panel'
   );
 </script>
@@ -194,6 +201,18 @@
     </div>
     <nav class="flex-1 overflow-y-auto py-4 px-3">
       <ul class="space-y-0.5">
+        <li>
+          <button
+            type="button"
+            class="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {isAnalytics ? 'bg-white/15 text-white' : 'text-white/90 hover:bg-white/10 hover:text-white'}"
+            onclick={() => { goAnalytics(); sidebarOpen = false; }}
+          >
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/90" aria-hidden="true">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19V5m0 14h16M8 16v-4m4 4V8m4 8v-7" /></svg>
+            </span>
+            <span>Estadísticas</span>
+          </button>
+        </li>
         <li>
           <button
             type="button"
@@ -295,6 +314,8 @@
           <PageForm slug={null} />
         {:else if path === 'users'}
           <UserManagement {currentUserId}/>
+        {:else if path === 'analytics'}
+          <VisitStatistics />
         {:else}
           <PageList />
         {/if}
