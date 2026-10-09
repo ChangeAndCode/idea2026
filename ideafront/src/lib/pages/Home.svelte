@@ -54,6 +54,13 @@
   let locations = defaultLanding.locations;
   let heroLogos = defaultLanding.heroLogos;
 
+  function mapsUrl(location) {
+    const configured = String(location?.mapsUrl ?? '').trim();
+    if (configured) return configured;
+    const query = [location?.name, location?.address, 'Chihuahua, Chihuahua'].filter(Boolean).join(', ');
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+
   function handleDesktopImageClick(event, index) {
     if (index !== carouselIndex) {
       event.preventDefault();
@@ -489,9 +496,13 @@
       <div class="flex overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <!-- Miniatura mapa (cuadrado, borde gris) -->
         <div class="relative flex-shrink-0 w-[140px] sm:w-[160px] aspect-square border-r border-slate-200 bg-slate-100">
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="h-3 w-3 rounded-full bg-red-500 shadow-sm" aria-hidden="true"></span>
-          </div>
+          {#if loc.mapImage}
+            <img src={mediaUrl(loc.mapImage)} alt={`Ubicación de ${loc.name}`} class="h-full w-full object-contain" />
+          {:else}
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="h-3 w-3 rounded-full bg-red-500 shadow-sm" aria-hidden="true"></span>
+            </div>
+          {/if}
         </div>
         <!-- Nombre, dirección y botón -->
         <div class="flex min-w-0 flex-1 flex-col justify-between p-5 sm:p-6">
@@ -499,7 +510,7 @@
             <h3 class="font-bold text-idea-navy">{loc.name}</h3>
             <p class="mt-2 text-sm leading-snug text-slate-600">{loc.address}</p>
           </div>
-          <button type="button" class="mt-4 w-full rounded-xl bg-idea-blue px-4 py-3 text-sm font-bold text-white transition hover:opacity-95 sm:py-2.5">Abrir Maps</button>
+          <a href={mapsUrl(loc)} target="_blank" rel="noopener noreferrer" class="mt-4 block w-full rounded-xl bg-idea-blue px-4 py-3 text-center text-sm font-bold text-white transition hover:opacity-95 sm:py-2.5">Abrir Maps</a>
         </div>
       </div>
     {/each}

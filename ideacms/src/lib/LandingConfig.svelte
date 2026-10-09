@@ -27,7 +27,7 @@
       { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
     ],
     buscasAtencionTitle: '¿Buscas atención?\nAquí nos encuentras',
-    locations: [{ name: '', address: '' }],
+    locations: [{ name: '', address: '', mapsUrl: '', mapImage: '' }],
   };
 
   const TABS = [
@@ -76,7 +76,7 @@
           ciudadHablaTitle: L.ciudadHablaTitle ?? DEFAULT_LANDING.ciudadHablaTitle,
           ciudadHablaCards: Array.isArray(L.ciudadHablaCards) && L.ciudadHablaCards.length ? L.ciudadHablaCards.map((c) => ({ ...DEFAULT_LANDING.ciudadHablaCards[0], ...c, imageLink: c.imageLink ?? '', imageOnLeft: c.imageOnLeft !== false })) : DEFAULT_LANDING.ciudadHablaCards,
           buscasAtencionTitle: L.buscasAtencionTitle ?? DEFAULT_LANDING.buscasAtencionTitle,
-          locations: Array.isArray(L.locations) && L.locations.length ? L.locations.map((l) => ({ name: l.name ?? '', address: l.address ?? '' })) : DEFAULT_LANDING.locations,
+          locations: Array.isArray(L.locations) && L.locations.length ? L.locations.map((l) => ({ name: l.name ?? '', address: l.address ?? '', mapsUrl: l.mapsUrl ?? '', mapImage: l.mapImage ?? '' })) : DEFAULT_LANDING.locations,
         };
       }
     } catch (e) {
@@ -177,7 +177,7 @@
   }
   function addLocation() {
     const locs = landing.locations ?? [];
-    landing = { ...landing, locations: [...locs, { name: '', address: '' }] };
+    landing = { ...landing, locations: [...locs, { name: '', address: '', mapsUrl: '', mapImage: '' }] };
   }
   function removeLocation(i) {
     const locs = landing.locations ?? [];
@@ -462,6 +462,16 @@
             <div class="flex-1 min-w-[200px] space-y-2">
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Nombre del lugar" value={loc.name} oninput={(e) => setLocation(i, 'name', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Dirección" value={loc.address} oninput={(e) => setLocation(i, 'address', e.target.value)} />
+              <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace de Google Maps (opcional)" value={loc.mapsUrl ?? ''} oninput={(e) => setLocation(i, 'mapsUrl', e.target.value)} />
+              <ImageUploadField
+                compact
+                id="location-map-image-{i}"
+                label="Imagen de ubicación"
+                value={loc.mapImage ?? ''}
+                requiredWidth={300}
+                requiredHeight={300}
+                onChange={(v) => setLocation(i, 'mapImage', v)}
+              />
             </div>
             <div class="flex gap-1">
               <button type="button" class="p-2 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveLocation(i, -1)} disabled={i === 0}>↑</button>
