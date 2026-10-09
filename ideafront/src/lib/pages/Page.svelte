@@ -5,6 +5,7 @@
   let title = '';
   let body = '';
   let image = '';
+  let imageLink = '';
   let loading = true;
   let notFound = false;
 
@@ -21,6 +22,7 @@
         title = data.title || '';
         body = data.body || '';
         image = data.image || '';
+        imageLink = data.imageLink || '';
         loading = false;
         return;
       }
@@ -106,7 +108,11 @@
         {#if displayImageSrc}
           <div class="flex-shrink-0 order-1 md:order-2 w-full md:w-[28rem] lg:w-[34rem] xl:w-[40rem]">
             <div class="bg-white p-4 rounded-lg">
-              <img src={displayImageSrc} alt="" class="w-full object-contain" />
+              {#if imageLink}
+                <a href={imageLink} aria-label="Abrir enlace de la imagen"><img src={displayImageSrc} alt="" class="w-full object-contain" /></a>
+              {:else}
+                <img src={displayImageSrc} alt="" class="w-full object-contain" />
+              {/if}
             </div>
           </div>
         {/if}

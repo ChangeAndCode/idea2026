@@ -9,12 +9,24 @@
   let title = $state('');
   let body = $state('');
   let image = $state('');
+  let imageLink = $state('');
   let slugInput = $state('');
   let loading = $state(true);
   let saving = $state(false);
   let error = $state('');
 
   const isCreate = $derived(slug === null);
+
+  function isValidLink(value) {
+    const link = String(value ?? '').trim();
+    if (!link || link.startsWith('/')) return true;
+    try {
+      const url = new URL(link);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (_) {
+      return false;
+    }
+  }
 
   async function load() {
     if (!slug) {
@@ -28,6 +40,7 @@
       title = p.title ?? '';
       body = p.body ?? '';
       image = p.image ?? '';
+      imageLink = p.imageLink ?? '';
     } catch (e) {
       error = e.message;
     } finally {
@@ -43,8 +56,13 @@
     const t = title.trim();
     const b = body.trim();
     const img = image.trim();
+    const imgLink = imageLink.trim();
     if (!t) {
       error = 'Escribe un título para la página.';
+      return;
+    }
+    if (!isValidLink(imgLink)) {
+      error = 'La URL de la imagen no es válida. Usa una URL http(s) o una ruta interna como /pagina/ejemplo.';
       return;
     }
     saving = true;
@@ -57,9 +75,9 @@
           saving = false;
           return;
         }
-        await createPage({ slug: s, title: t, body: b, image: img });
+        await createPage({ slug: s, title: t, body: b, image: img, imageLink: imgLink });
       } else {
-        await updatePage(slug, { title: t, body: b, image: img });
+        await updatePage(slug, { title: t, body: b, image: img, imageLink: imgLink });
       }
       goBack();
     } catch (e) {
@@ -160,6 +178,14 @@
               label="Logo / imagen"
               value={image}
               onChange={(v) => (image = v)}
+            />
+            <label for="image-link" class="cms-label mt-4 block">Enlace / URL (opcional)</label>
+            <input
+              id="image-link"
+              type="text"
+              class="cms-input mt-1"
+              bind:value={imageLink}
+              placeholder="https://ejemplo.com o /pagina/ejemplo"
             />
             <p class="text-sm text-slate-500 mt-1.5">
               Sube una imagen para mostrarla a la derecha del texto. Déjalo sin subir si no necesitas logo.
