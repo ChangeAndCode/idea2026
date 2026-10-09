@@ -29,6 +29,7 @@ function assertValidLandingLinks(landing) {
     ...(Array.isArray(landing?.heroLogos) ? landing.heroLogos.map((x) => x?.link) : []),
     ...(Array.isArray(landing?.carouselSlides) ? landing.carouselSlides.map((x) => x?.link) : []),
     ...(Array.isArray(landing?.ciudadHablaCards) ? landing.ciudadHablaCards.map((x) => x?.imageLink) : []),
+    ...(Array.isArray(landing?.locations) ? landing.locations.map((x) => x?.mapsUrl) : []),
   ];
   const invalid = links.find((link) => !isValidLink(link));
   if (invalid !== undefined) throw Object.assign(new Error('La URL de la imagen no es válida'), { status: 400 });
@@ -193,10 +194,10 @@ const DEFAULT_LANDING = {
   ],
   buscasAtencionTitle: '¿Buscas atención?\nAquí nos encuentras',
   locations: [
-    { name: 'MIFAM Porvenir', address: 'Mina Dolores & Mina Los Reyes, Porvenir, Rio Sacramento Nte, 31137 Chihuahua, Chih.' },
-    { name: 'MIFAM Riberas del Sacramento', address: 'C. Río Amur esquina con Río Paraná, Chihuahua, Chih.' },
-    { name: 'MIFAM Dale', address: 'C. Trigésimo Sexta 3402, Dale, RUTA SUR II, 31050 Chihuahua, Chih.' },
-    { name: 'MIFAM Unidad Vallarta', address: '31120, Manuel González Cossío 7300, Nacional, Chihuahua, Chih.' },
+    { name: 'MIFAM Porvenir', address: 'Mina Dolores & Mina Los Reyes, Porvenir, Rio Sacramento Nte, 31137 Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
+    { name: 'MIFAM Riberas del Sacramento', address: 'C. Río Amur esquina con Río Paraná, Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
+    { name: 'MIFAM Dale', address: 'C. Trigésimo Sexta 3402, Dale, RUTA SUR II, 31050 Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
+    { name: 'MIFAM Unidad Vallarta', address: '31120, Manuel González Cossío 7300, Nacional, Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
   ],
 };
 
@@ -239,6 +240,8 @@ function normalizeLanding(landing) {
     ? landing.locations.slice(0, 30).map((l) => ({
         name: String(l?.name ?? '').trim(),
         address: String(l?.address ?? '').trim(),
+        mapsUrl: String(l?.mapsUrl ?? '').trim(),
+        mapImage: String(l?.mapImage ?? '').trim(),
       }))
     : DEFAULT_LANDING.locations;
   const heroLogos = Array.isArray(landing.heroLogos)
