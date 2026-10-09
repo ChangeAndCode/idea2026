@@ -23,7 +23,17 @@
             'data-align': attributes.align || 'left',
           }),
         },
+        link: {
+          default: '',
+          parseHTML: (element) => element.closest('a')?.getAttribute('href') || '',
+          renderHTML: () => ({}),
+        },
       };
+    },
+    renderHTML({ HTMLAttributes }) {
+      const { link, ...imageAttributes } = HTMLAttributes;
+      if (!link) return ['img', imageAttributes];
+      return ['a', { href: link, target: '_blank', rel: 'noopener noreferrer' }, ['img', imageAttributes]];
     },
   });
 
@@ -365,6 +375,23 @@ function setImageAlign(align) {
   editor.chain().updateAttributes('image', { align }).run();
 }
 
+function setImageLink() {
+  const editor = editorState.editor;
+  if (!editor || !editor.isActive('image')) return;
+
+  const current = editor.getAttributes('image').link ?? '';
+  const value = window.prompt('Enlace / URL de la imagen (opcional)', current);
+  if (value === null) return;
+
+  const link = value.trim();
+  if (link && !link.startsWith('/') && !/^https?:\/\//i.test(link)) {
+    alert('La URL debe comenzar con http://, https:// o / para una ruta interna.');
+    return;
+  }
+
+  editor.chain().focus().updateAttributes('image', { link }).run();
+}
+
 function setFontSize(value) {
   const editor = editorState.editor;
   if (!editor) return;
@@ -680,7 +707,7 @@ async function onInlineImageSelected(event) {
         onclick={() => setTextAlign('left')}
       >
         <svg
-          class="w-5 h-5"
+          class="w-6 h-6"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -930,6 +957,27 @@ async function onInlineImageSelected(event) {
             />
           </svg>
         {/if}
+      </button>
+
+      <button
+        type="button"
+        aria-label="Enlace de imagen"
+        title="Enlace de imagen"
+        class="cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
+        onclick={setImageLink}
+        disabled={!isImageSelected()}
+      >
+        <svg
+          class="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path d="M10.59 13.41a2 2 0 0 0 2.82 0l3-3a2 2 0 0 0-2.82-2.82l-1.72 1.72" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M13.41 10.59a2 2 0 0 0-2.82 0l-3 3a2 2 0 0 0 2.82 2.82l1.72-1.72" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M4 5.5h6M4 8.5h3M4 11.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
       </button>
 
       <button
