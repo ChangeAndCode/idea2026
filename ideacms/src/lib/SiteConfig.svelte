@@ -7,6 +7,9 @@
   let logoMunicipio = $state('');
   let logoIdea = $state('');
   let logoChihuahua = $state('');
+  let logoMunicipioLink = $state('');
+  let logoIdeaLink = $state('');
+  let logoChihuahuaLink = $state('');
   let loading = $state(true);
   let saving = $state(false);
   let error = $state('');
@@ -22,6 +25,9 @@
       logoMunicipio = data.logoMunicipio ?? '';
       logoIdea = data.logoIdea ?? '';
       logoChihuahua = data.logoChihuahua ?? '';
+      logoMunicipioLink = data.logoMunicipioLink ?? '';
+      logoIdeaLink = data.logoIdeaLink ?? '';
+      logoChihuahuaLink = data.logoChihuahuaLink ?? '';
     } catch (e) {
       error = e.message;
     } finally {
@@ -69,6 +75,9 @@
         logoMunicipio: logoMunicipio.trim(),
         logoIdea: logoIdea.trim(),
         logoChihuahua: logoChihuahua.trim(),
+        logoMunicipioLink: logoMunicipioLink.trim(),
+        logoIdeaLink: logoIdeaLink.trim(),
+        logoChihuahuaLink: logoChihuahuaLink.trim(),
       });
       message = 'Listo. Los cambios ya se ven en el sitio.';
       setTimeout(() => { message = ''; }, 4000);
@@ -180,18 +189,21 @@
             value={logoMunicipio}
             onChange={(v) => (logoMunicipio = v)}
           />
+          <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" bind:value={logoMunicipioLink} />
           <ImageUploadField
             id="logo-idea"
             label="Logo 2 (IDEA)"
             value={logoIdea}
             onChange={(v) => (logoIdea = v)}
           />
+          <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" bind:value={logoIdeaLink} />
           <ImageUploadField
             id="logo-chihuahua"
             label="Logo 3 (Chihuahua)"
             value={logoChihuahua}
             onChange={(v) => (logoChihuahua = v)}
           />
+          <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" bind:value={logoChihuahuaLink} />
         </div>
       </section>
 

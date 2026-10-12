@@ -25,6 +25,9 @@
   let logoMunicipio = $state(defaultLogoMunicipio);
   let logoIdea = $state(defaultLogoIdea);
   let logoChihuahua = $state(defaultLogoChihuahua);
+  let logoMunicipioLink = $state('');
+  let logoIdeaLink = $state('');
+  let logoChihuahuaLink = $state('');
 
   onMount(async () => {
     try {
@@ -43,6 +46,9 @@
       if (data.logoChihuahua != null && data.logoChihuahua !== '') {
         logoChihuahua = data.logoChihuahua;
       }
+      logoMunicipioLink = data.logoMunicipioLink ?? '';
+      logoIdeaLink = data.logoIdeaLink ?? '';
+      logoChihuahuaLink = data.logoChihuahuaLink ?? '';
     } catch (_) {
       /* Mantener valores por defecto si no hay backend o hay error de red */
     }
@@ -61,15 +67,15 @@
 <header class="relative z-30 bg-idea-dark text-white">
   <div class="flex justify-center items-center">
     <nav class="flex w-10/12 items-center justify-between px-4 py-4 sm:px-6">
-      <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-4" onclick={(e) => { e.preventDefault(); go('/'); }}>
-        <img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" />
-        <img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />
+      <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+        {#if logoMunicipioLink}<a href={logoMunicipioLink}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{:else}<a href="/" onclick={(e) => { e.preventDefault(); go('/'); }}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{/if}
+        {#if logoIdeaLink}<a href={logoIdeaLink}><img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" /></a>{:else}<img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />{/if}
         <div class="sm:hidden">
           <div class="font-semibold tracking-tight text-xs">Chihuahua</div>
           <div class="text-[9px] text-white/90 leading-tight">capital de trabajo y resultados</div>
         </div>
-        <img src={mediaUrl(logoChihuahua)} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" />
-      </a>
+        {#if logoChihuahuaLink}<a href={logoChihuahuaLink}><img src={mediaUrl(logoChihuahua)} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" /></a>{:else}<img src={mediaUrl(logoChihuahua)} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" />{/if}
+      </div>
 
       <!-- Escritorio: enlaces visibles -->
       <ul class="hidden items-center gap-4 md:flex md:gap-6">

@@ -35,15 +35,16 @@
       { name: 'MIFAM Unidad Vallarta', address: '31120, Manuel González Cossío 7300, Nacional, Chihuahua, Chih.' },
     ],
     heroLogos: [
-      { src: '/assets/logos/escudo-municipio.png', alt: 'Escudo Municipio' },
-      { src: '/assets/logos/logo-chihuahua-trabajo.png', alt: 'Chihuahua capital de trabajo y resultados' },
-      { src: '/assets/logos/logo-idea.png', alt: 'IDEA' },
-      { src: '/assets/logos/chihuahua-capital.png', alt: 'Chihuahua CAPITAL' },
+      { src: '/assets/logos/escudo-municipio.png', alt: 'Escudo Municipio', link: '' },
+      { src: '/assets/logos/logo-chihuahua-trabajo.png', alt: 'Chihuahua capital de trabajo y resultados', link: '' },
+      { src: '/assets/logos/logo-idea.png', alt: 'IDEA', link: '' },
+      { src: '/assets/logos/chihuahua-capital.png', alt: 'Chihuahua CAPITAL', link: '' },
     ],
   };
   let heroTitle = defaultLanding.heroTitle;
   let heroSubtitle = defaultLanding.heroSubtitle;
   let heroMascotImg = defaultLanding.heroMascotImg;
+  let heroMascotLink = defaultLanding.heroMascotLink ?? '';
   let heroCtaText = defaultLanding.heroCtaText;
   let headlineText = defaultLanding.headlineText;
   let carouselSlides = defaultLanding.carouselSlides;
@@ -52,6 +53,21 @@
   let buscasAtencionTitle = defaultLanding.buscasAtencionTitle;
   let locations = defaultLanding.locations;
   let heroLogos = defaultLanding.heroLogos;
+
+  function mapsUrl(location) {
+    const configured = String(location?.mapsUrl ?? '').trim();
+    if (configured) return configured;
+    const query = [location?.name, location?.address, 'Chihuahua, Chihuahua'].filter(Boolean).join(', ');
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+
+  function handleDesktopImageClick(event, index) {
+    if (index !== carouselIndex) {
+      event.preventDefault();
+      event.stopPropagation();
+      carouselIndex = index;
+    }
+  }
 
   onMount(async () => {
     try {
@@ -63,6 +79,7 @@
         if (L.heroTitle != null && L.heroTitle !== '') heroTitle = L.heroTitle;
         if (L.heroSubtitle != null && L.heroSubtitle !== '') heroSubtitle = L.heroSubtitle;
         if (L.heroMascotImg != null && L.heroMascotImg !== '') heroMascotImg = L.heroMascotImg;
+        heroMascotLink = L.heroMascotLink ?? '';
         if (L.heroCtaText != null && L.heroCtaText !== '') heroCtaText = L.heroCtaText;
         if (L.headlineText != null && L.headlineText !== '') headlineText = L.headlineText;
         if (Array.isArray(L.carouselSlides) && L.carouselSlides.length > 0) carouselSlides = L.carouselSlides;
@@ -276,11 +293,13 @@
         </p>
       </div>
       <div class="mt-8 flex justify-center md:mt-0 md:flex-shrink-0 md:justify-end">
-        <img
-          src={mediaUrl(heroMascotImg)}
-          alt="Chambabot, asistente inteligente"
-          class="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]"
-        />
+        {#if heroMascotLink}
+          <a href={heroMascotLink} aria-label="Abrir enlace de Chambabot">
+            <img src={mediaUrl(heroMascotImg)} alt="Chambabot, asistente inteligente" class="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]" />
+          </a>
+        {:else}
+          <img src={mediaUrl(heroMascotImg)} alt="Chambabot, asistente inteligente" class="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]" />
+        {/if}
       </div>
     </div>
     <div class="flex justify-center pt-2 md:pt-12">
@@ -313,7 +332,13 @@
   <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-12 gap-y-8 px-4 md:gap-x-16 md:px-6">
     {#each heroLogos as logo}
       {#if logo.src}
-        <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-32 w-auto flex-1 min-w-0 max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
+        {#if logo.link}
+          <a href={logo.link} class="flex flex-1 min-w-0 justify-center" aria-label={logo.alt || 'Abrir enlace'}>
+            <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-32 w-auto max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
+          </a>
+        {:else}
+          <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-32 w-auto flex-1 min-w-0 max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
+        {/if}
       {/if}
     {/each}
   </div>
@@ -350,9 +375,15 @@
             {:else}
               <div class="relative mx-1 min-h-[280px] overflow-hidden rounded-2xl bg-idea-navy shadow-md">
                 <div class="absolute inset-0 flex items-center justify-center p-2">
-                  <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                  {#if slide.link}
+                    <a href={slide.link} class="relative z-10 flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'} on:click|stopPropagation>
+                      <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                    </a>
+                  {:else}
+                    <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                  {/if}
                 </div>
-                <div class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 p-4 text-center text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 p-4 text-center text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   <p class="font-bold text-idea-yellow">{slide.title}</p>
                   <p class="mt-2 text-sm opacity-95">{slide.subtitle}</p>
                 </div>
@@ -370,6 +401,7 @@
           role="button"
           tabindex="0"
           class="group flex min-w-0 cursor-pointer rounded-2xl bg-transparent p-0 text-left outline-none transition-all duration-500 focus:ring-2 focus:ring-idea-bright focus:ring-offset-2 {i === carouselIndex ? 'z-10 flex-[2]' : 'flex-1'}"
+          on:mouseenter={() => (carouselIndex = i)}
           on:click={() => (carouselIndex = i)}
           on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); carouselIndex = i; } }}
         >
@@ -382,9 +414,15 @@
           {:else}
             <div class="relative w-full overflow-hidden rounded-2xl shadow-md {i === carouselIndex ? 'min-h-[380px] bg-idea-navy shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px]' : 'min-h-[260px] bg-slate-100'}">
               <div class="absolute inset-0 flex items-center justify-center">
-                <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                {#if slide.link}
+                  <a href={slide.link} class="relative z-10 flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'} on:click={(event) => handleDesktopImageClick(event, i)}>
+                    <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                  </a>
+                {:else}
+                  <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
+                {/if}
               </div>
-              <div class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-4 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 {i === carouselIndex ? 'bg-black/55 text-white' : 'bg-black/40 text-white'}">
+              <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-4 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 {i === carouselIndex ? 'bg-black/55 text-white' : 'bg-black/40 text-white'}">
                 <p class="font-bold {i === carouselIndex ? 'text-idea-yellow text-lg' : 'text-white text-base'}">{slide.title}</p>
                 <p class="mt-2 text-sm opacity-95">{slide.subtitle}</p>
               </div>
@@ -418,7 +456,11 @@
       <div class="grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-2 md:items-stretch">
         {#if card.imageOnLeft}
           <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:min-h-[280px] md:rounded-r-none md:rounded-l-2xl md:rounded-tr-none">
-            <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+            {#if card.imageLink}
+              <a href={card.imageLink} class="block h-full w-full" aria-label={card.imgAlt || 'Abrir enlace'}><img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" /></a>
+            {:else}
+              <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+            {/if}
           </div>
           <div class="order-2 flex flex-col justify-center p-6 md:p-8">
             <h3 class="text-xl font-bold uppercase tracking-wide text-idea-navy">{card.title}</h3>
@@ -432,7 +474,11 @@
             <button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>
           </div>
           <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:order-2 md:min-h-[280px] md:rounded-l-none md:rounded-r-2xl md:rounded-tl-none">
-            <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+            {#if card.imageLink}
+              <a href={card.imageLink} class="block h-full w-full" aria-label={card.imgAlt || 'Abrir enlace'}><img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" /></a>
+            {:else}
+              <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+            {/if}
           </div>
         {/if}
       </div>
@@ -450,9 +496,13 @@
       <div class="flex overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <!-- Miniatura mapa (cuadrado, borde gris) -->
         <div class="relative flex-shrink-0 w-[140px] sm:w-[160px] aspect-square border-r border-slate-200 bg-slate-100">
-          <div class="absolute inset-0 flex items-center justify-center">
-            <span class="h-3 w-3 rounded-full bg-red-500 shadow-sm" aria-hidden="true"></span>
-          </div>
+          {#if loc.mapImage}
+            <img src={mediaUrl(loc.mapImage)} alt={`Ubicación de ${loc.name}`} class="h-full w-full object-contain" />
+          {:else}
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="h-3 w-3 rounded-full bg-red-500 shadow-sm" aria-hidden="true"></span>
+            </div>
+          {/if}
         </div>
         <!-- Nombre, dirección y botón -->
         <div class="flex min-w-0 flex-1 flex-col justify-between p-5 sm:p-6">
@@ -460,7 +510,7 @@
             <h3 class="font-bold text-idea-navy">{loc.name}</h3>
             <p class="mt-2 text-sm leading-snug text-slate-600">{loc.address}</p>
           </div>
-          <button type="button" class="mt-4 w-full rounded-xl bg-idea-blue px-4 py-3 text-sm font-bold text-white transition hover:opacity-95 sm:py-2.5">Abrir Maps</button>
+          <a href={mapsUrl(loc)} target="_blank" rel="noopener noreferrer" class="mt-4 block w-full rounded-xl bg-idea-blue px-4 py-3 text-center text-sm font-bold text-white transition hover:opacity-95 sm:py-2.5">Abrir Maps</a>
         </div>
       </div>
     {/each}
