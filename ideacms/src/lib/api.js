@@ -98,6 +98,19 @@ export async function updateSiteConfig(data) {
   return r.json();
 }
 
+async function analyticsGet(path, params = {}) {
+  const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value !== undefined && value !== ''));
+  const url = `${apiBase ? `${apiBase}/api/analytics` : '/api/analytics'}${path}${query.toString() ? `?${query}` : ''}`;
+  const r = await fetch(url, { headers: await authHeaders() });
+  if (!r.ok) throw new Error((await r.json()).error || await r.text());
+  return r.json();
+}
+
+export const getAnalyticsSummary = (params) => analyticsGet('/summary', params);
+export const getAnalyticsPages = (params) => analyticsGet('/pages', params);
+export const getAnalyticsTimeseries = (params) => analyticsGet('/timeseries', params);
+export const getAnalyticsHistory = (params) => analyticsGet('/history', params);
+
 /** Lista usuarios que pueden acceder al CMS (Clerk). */
 export async function getCmsUsers() {
   const r = await fetch(`${base}/users`, { headers: await authHeaders() });

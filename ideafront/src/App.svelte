@@ -5,6 +5,7 @@
   import Home from './lib/pages/Home.svelte';
   import Bolsa from './lib/pages/Bolsa.svelte';
   import Page from './lib/pages/Page.svelte';
+  import { trackPageVisit } from './lib/visitTracker.js';
 
   let clerkReady = $state(false);
   let isSignedIn = $state(false);
@@ -19,6 +20,15 @@
   const isBolsa = $derived(path === '/bolsa');
 
   const Component = $derived(isCmsPage ? Page : (path === '/bolsa' ? Bolsa : path === '/' ? Home : null));
+
+  onMount(() => {
+    let first = true;
+    const unsubscribe = page.subscribe((current) => {
+      if (first) first = false;
+      trackPageVisit(current.path || '/');
+    });
+    return unsubscribe;
+  });
 
   onMount(async () => {
     // Solo usar la app de Clerk de la Bolsa (nunca la del CMS) para que las cuentas estén separadas

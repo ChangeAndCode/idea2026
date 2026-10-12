@@ -6,27 +6,28 @@
     heroTitle: '¡Bienvenido a tu nueva forma de conectar con Chihuahua!',
     heroSubtitle: 'Descubre eventos únicos y encuentra la chamba ideal con la ayuda de Chambabot, tu asistente inteligente.',
     heroMascotImg: '/assets/mascota/chambabot.png',
+    heroMascotLink: '',
     heroCtaText: 'Buscador de empleo',
     heroLogos: [
-      { src: '/assets/logos/escudo-municipio.png', alt: 'Escudo Municipio' },
-      { src: '/assets/logos/logo-chihuahua-trabajo.png', alt: 'Chihuahua capital de trabajo y resultados' },
-      { src: '/assets/logos/logo-idea.png', alt: 'IDEA' },
-      { src: '/assets/logos/chihuahua-capital.png', alt: 'Chihuahua CAPITAL' },
+      { src: '/assets/logos/escudo-municipio.png', alt: 'Escudo Municipio', link: '' },
+      { src: '/assets/logos/logo-chihuahua-trabajo.png', alt: 'Chihuahua capital de trabajo y resultados', link: '' },
+      { src: '/assets/logos/logo-idea.png', alt: 'IDEA', link: '' },
+      { src: '/assets/logos/chihuahua-capital.png', alt: 'Chihuahua CAPITAL', link: '' },
     ],
     headlineText: 'Lo que pasa en Chihuahua,\nempieza aquí.',
     carouselSlides: [
-      { type: 'image', img: '', alt: '', title: '', subtitle: '' },
+      { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' },
       { type: 'info', text: '', cta: 'Descubre más', sub: '' },
-      { type: 'image', img: '', alt: '', title: '', subtitle: '' },
+      { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' },
     ],
     ciudadHablaTitle: 'La ciudad habla.\n¿Ya la escuchaste?',
     ciudadHablaCards: [
-      { title: '', text: '', img: '', imgAlt: '', buttonText: 'Leer más', imageOnLeft: true },
-      { title: '', text: '', img: '', imgAlt: '', buttonText: 'Leer más', imageOnLeft: false },
-      { title: '', text: '', img: '', imgAlt: '', buttonText: 'Leer más', imageOnLeft: true },
+      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
+      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: false },
+      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
     ],
     buscasAtencionTitle: '¿Buscas atención?\nAquí nos encuentras',
-    locations: [{ name: '', address: '' }],
+    locations: [{ name: '', address: '', mapsUrl: '', mapImage: '' }],
   };
 
   const TABS = [
@@ -45,6 +46,17 @@
   let error = $state('');
   let savedSection = $state(null);
 
+  function isValidLink(value) {
+    const link = String(value ?? '').trim();
+    if (!link || link.startsWith('/')) return true;
+    try {
+      const url = new URL(link);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (_) {
+      return false;
+    }
+  }
+
   async function load() {
     loading = true;
     error = '';
@@ -56,14 +68,15 @@
           heroTitle: L.heroTitle ?? DEFAULT_LANDING.heroTitle,
           heroSubtitle: L.heroSubtitle ?? DEFAULT_LANDING.heroSubtitle,
           heroMascotImg: L.heroMascotImg ?? DEFAULT_LANDING.heroMascotImg,
+          heroMascotLink: L.heroMascotLink ?? '',
           heroCtaText: L.heroCtaText ?? DEFAULT_LANDING.heroCtaText,
-          heroLogos: Array.isArray(L.heroLogos) && L.heroLogos.length ? L.heroLogos.map((logo) => ({ src: logo.src ?? '', alt: logo.alt ?? '' })) : DEFAULT_LANDING.heroLogos,
+          heroLogos: Array.isArray(L.heroLogos) && L.heroLogos.length ? L.heroLogos.map((logo) => ({ src: logo.src ?? '', alt: logo.alt ?? '', link: logo.link ?? '' })) : DEFAULT_LANDING.heroLogos,
           headlineText: L.headlineText ?? DEFAULT_LANDING.headlineText,
-          carouselSlides: Array.isArray(L.carouselSlides) && L.carouselSlides.length ? L.carouselSlides.map((s) => ({ ...s, type: s.type === 'info' ? 'info' : 'image' })) : DEFAULT_LANDING.carouselSlides,
+          carouselSlides: Array.isArray(L.carouselSlides) && L.carouselSlides.length ? L.carouselSlides.map((s) => ({ ...s, link: s.link ?? '', type: s.type === 'info' ? 'info' : 'image' })) : DEFAULT_LANDING.carouselSlides,
           ciudadHablaTitle: L.ciudadHablaTitle ?? DEFAULT_LANDING.ciudadHablaTitle,
-          ciudadHablaCards: Array.isArray(L.ciudadHablaCards) && L.ciudadHablaCards.length ? L.ciudadHablaCards.map((c) => ({ ...DEFAULT_LANDING.ciudadHablaCards[0], ...c, imageOnLeft: c.imageOnLeft !== false })) : DEFAULT_LANDING.ciudadHablaCards,
+          ciudadHablaCards: Array.isArray(L.ciudadHablaCards) && L.ciudadHablaCards.length ? L.ciudadHablaCards.map((c) => ({ ...DEFAULT_LANDING.ciudadHablaCards[0], ...c, imageLink: c.imageLink ?? '', imageOnLeft: c.imageOnLeft !== false })) : DEFAULT_LANDING.ciudadHablaCards,
           buscasAtencionTitle: L.buscasAtencionTitle ?? DEFAULT_LANDING.buscasAtencionTitle,
-          locations: Array.isArray(L.locations) && L.locations.length ? L.locations.map((l) => ({ name: l.name ?? '', address: l.address ?? '' })) : DEFAULT_LANDING.locations,
+          locations: Array.isArray(L.locations) && L.locations.length ? L.locations.map((l) => ({ name: l.name ?? '', address: l.address ?? '', mapsUrl: l.mapsUrl ?? '', mapImage: l.mapImage ?? '' })) : DEFAULT_LANDING.locations,
         };
       }
     } catch (e) {
@@ -74,6 +87,15 @@
   }
 
   async function saveSection(sectionId) {
+    const links = [
+      ...(landing.heroLogos ?? []).map((x) => x.link),
+      ...(landing.carouselSlides ?? []).map((x) => x.link),
+      ...(landing.ciudadHablaCards ?? []).map((x) => x.imageLink),
+    ];
+    if (links.some((link) => !isValidLink(link))) {
+      error = 'Revisa los campos Enlace / URL. Usa una URL http(s) o una ruta interna como /pagina/ejemplo.';
+      return;
+    }
     savingSection = sectionId;
     error = '';
     savedSection = null;
@@ -89,7 +111,7 @@
   }
 
   function addSlide(type) {
-    landing = { ...landing, carouselSlides: [...landing.carouselSlides, type === 'info' ? { type: 'info', text: '', cta: 'Descubre más', sub: '' } : { type: 'image', img: '', alt: '', title: '', subtitle: '' }] };
+    landing = { ...landing, carouselSlides: [...landing.carouselSlides, type === 'info' ? { type: 'info', text: '', cta: 'Descubre más', sub: '' } : { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' }] };
   }
   function removeSlide(i) {
     landing = { ...landing, carouselSlides: landing.carouselSlides.filter((_, idx) => idx !== i) };
@@ -115,7 +137,7 @@
   }
   function addLogo() {
     const logos = landing.heroLogos ?? [];
-    landing = { ...landing, heroLogos: [...logos, { src: '', alt: '' }] };
+    landing = { ...landing, heroLogos: [...logos, { src: '', alt: '', link: '' }] };
   }
   function removeLogo(i) {
     const logos = landing.heroLogos ?? [];
@@ -135,7 +157,7 @@
   }
   function addCard() {
     const cards = landing.ciudadHablaCards ?? [];
-    landing = { ...landing, ciudadHablaCards: [...cards, { title: '', text: '', img: '', imgAlt: '', buttonText: 'Leer más', imageOnLeft: true }] };
+    landing = { ...landing, ciudadHablaCards: [...cards, { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true }] };
   }
   function removeCard(i) {
     const cards = landing.ciudadHablaCards ?? [];
@@ -155,7 +177,7 @@
   }
   function addLocation() {
     const locs = landing.locations ?? [];
-    landing = { ...landing, locations: [...locs, { name: '', address: '' }] };
+    landing = { ...landing, locations: [...locs, { name: '', address: '', mapsUrl: '', mapImage: '' }] };
   }
   function removeLocation(i) {
     const locs = landing.locations ?? [];
@@ -234,6 +256,8 @@
             value={landing.heroMascotImg}
             onChange={(v) => setHero('heroMascotImg', v)}
           />
+          <label for="hero-mascot-link" class="cms-label mt-4 block">Enlace / URL (opcional)</label>
+          <input id="hero-mascot-link" type="text" class="cms-input mt-1" value={landing.heroMascotLink ?? ''} oninput={(e) => setHero('heroMascotLink', e.target.value)} placeholder="https://ejemplo.com o /pagina/ejemplo" />
         </div>
         <div>
           <label for="hero-cta" class="cms-label">Texto del botón</label>
@@ -277,6 +301,10 @@
               <div>
                 <label for="logo-alt-{i}" class="cms-label">Texto alternativo (alt)</label>
                 <input id="logo-alt-{i}" type="text" class="cms-input mt-1" placeholder="Descripción del logo" value={logo.alt} oninput={(e) => setLogo(i, 'alt', e.target.value)} />
+              </div>
+              <div>
+                <label for="logo-link-{i}" class="cms-label">Enlace / URL (opcional)</label>
+                <input id="logo-link-{i}" type="text" class="cms-input mt-1" placeholder="https://ejemplo.com o /pagina/ejemplo" value={logo.link ?? ''} oninput={(e) => setLogo(i, 'link', e.target.value)} />
               </div>
             </div>
           </li>
@@ -345,6 +373,7 @@
                 <input type="text" class="cms-input !py-2 text-sm" placeholder="Alt" value={slide.alt} oninput={(e) => setSlide(i, 'alt', e.target.value)} />
                 <input type="text" class="cms-input !py-2 text-sm" placeholder="Título" value={slide.title} oninput={(e) => setSlide(i, 'title', e.target.value)} />
                 <input type="text" class="cms-input !py-2 text-sm" placeholder="Subtítulo" value={slide.subtitle} oninput={(e) => setSlide(i, 'subtitle', e.target.value)} />
+                <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace / URL (opcional)" value={slide.link ?? ''} oninput={(e) => setSlide(i, 'link', e.target.value)} />
               </div>
             {/if}
           </li>
@@ -396,6 +425,7 @@
                 onChange={(v) => setCard(i, 'img', v)}
               />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Alt de la imagen" value={card.imgAlt} oninput={(e) => setCard(i, 'imgAlt', e.target.value)} />
+              <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace / URL de la imagen (opcional)" value={card.imageLink ?? ''} oninput={(e) => setCard(i, 'imageLink', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Texto del botón" value={card.buttonText} oninput={(e) => setCard(i, 'buttonText', e.target.value)} />
               <label class="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" checked={card.imageOnLeft} onchange={(e) => setCard(i, 'imageOnLeft', e.target.checked)} />
@@ -432,6 +462,16 @@
             <div class="flex-1 min-w-[200px] space-y-2">
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Nombre del lugar" value={loc.name} oninput={(e) => setLocation(i, 'name', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Dirección" value={loc.address} oninput={(e) => setLocation(i, 'address', e.target.value)} />
+              <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace de Google Maps (opcional)" value={loc.mapsUrl ?? ''} oninput={(e) => setLocation(i, 'mapsUrl', e.target.value)} />
+              <ImageUploadField
+                compact
+                id="location-map-image-{i}"
+                label="Imagen de ubicación"
+                value={loc.mapImage ?? ''}
+                requiredWidth={300}
+                requiredHeight={300}
+                onChange={(v) => setLocation(i, 'mapImage', v)}
+              />
             </div>
             <div class="flex gap-1">
               <button type="button" class="p-2 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveLocation(i, -1)} disabled={i === 0}>↑</button>

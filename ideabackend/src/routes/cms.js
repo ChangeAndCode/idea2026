@@ -11,6 +11,30 @@ import sanitizeHtml from 'sanitize-html';
 
 const router = Router();
 
+function isValidLink(value) {
+  const link = String(value ?? '').trim();
+  if (!link) return true;
+  if (link.startsWith('/')) return true;
+  try {
+    const url = new URL(link);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+}
+
+function assertValidLandingLinks(landing) {
+  const links = [
+    landing?.heroMascotLink,
+    ...(Array.isArray(landing?.heroLogos) ? landing.heroLogos.map((x) => x?.link) : []),
+    ...(Array.isArray(landing?.carouselSlides) ? landing.carouselSlides.map((x) => x?.link) : []),
+    ...(Array.isArray(landing?.ciudadHablaCards) ? landing.ciudadHablaCards.map((x) => x?.imageLink) : []),
+    ...(Array.isArray(landing?.locations) ? landing.locations.map((x) => x?.mapsUrl) : []),
+  ];
+  const invalid = links.find((link) => !isValidLink(link));
+  if (invalid !== undefined) throw Object.assign(new Error('La URL de la imagen no es válida'), { status: 400 });
+}
+
 const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
 
 const uploadStorage = multer.diskStorage({
@@ -138,6 +162,9 @@ const DEFAULT_SITE_CONFIG = {
   logoMunicipio: '/assets/logos/logo-municipio.png',
   logoIdea: '/assets/logos/logo-idea.png',
   logoChihuahua: '/assets/logos/chihuahua-capital.png',
+  logoMunicipioLink: '',
+  logoIdeaLink: '',
+  logoChihuahuaLink: '',
 };
 
 /** Valores por defecto de la landing (página de inicio). */
@@ -145,31 +172,32 @@ const DEFAULT_LANDING = {
   heroTitle: '¡Bienvenido a tu nueva forma de conectar con Chihuahua!',
   heroSubtitle: 'Descubre eventos únicos y encuentra la chamba ideal con la ayuda de Chambabot, tu asistente inteligente.',
   heroMascotImg: '/assets/mascota/chambabot.png',
+  heroMascotLink: '',
   heroCtaText: 'Buscador de empleo',
   heroLogos: [
-    { src: '/assets/logos/escudo-municipio.png', alt: 'Escudo Municipio' },
-    { src: '/assets/logos/logo-chihuahua-trabajo.png', alt: 'Chihuahua capital de trabajo y resultados' },
-    { src: '/assets/logos/logo-idea.png', alt: 'IDEA' },
-    { src: '/assets/logos/chihuahua-capital.png', alt: 'Chihuahua CAPITAL' },
+    { src: '/assets/logos/escudo-municipio.png', alt: 'Escudo Municipio', link: '' },
+    { src: '/assets/logos/logo-chihuahua-trabajo.png', alt: 'Chihuahua capital de trabajo y resultados', link: '' },
+    { src: '/assets/logos/logo-idea.png', alt: 'IDEA', link: '' },
+    { src: '/assets/logos/chihuahua-capital.png', alt: 'Chihuahua CAPITAL', link: '' },
   ],
   headlineText: 'Lo que pasa en Chihuahua,\nempieza aquí.',
   carouselSlides: [
-    { type: 'image', img: '/assets/banners/promo-kolau.jpeg', alt: 'Sitio WEB GRATIS - Kolau', title: 'Sitio WEB GRATIS', subtitle: 'Con botón de pago' },
+    { type: 'image', img: '/assets/banners/promo-kolau.jpeg', alt: 'Sitio WEB GRATIS - Kolau', title: 'Sitio WEB GRATIS', subtitle: 'Con botón de pago', link: '' },
     { type: 'info', text: 'Conecta con experiencias, ideas y herramientas que pueden cambiar tu forma de ver la ciudad y la tecnología.', cta: 'Descubre más', sub: 'CURSOS, TALLERES Y CAPACITACIONES A EMPRENDEDORES CHIHUAHUENSES' },
-    { type: 'image', img: '/assets/contenido/banner-fomech.jpeg', alt: 'FOMECH', title: 'FOMECH', subtitle: '¿Cuentas con una MiPyMe y buscas capital para crecer?' },
+    { type: 'image', img: '/assets/contenido/banner-fomech.jpeg', alt: 'FOMECH', title: 'FOMECH', subtitle: '¿Cuentas con una MiPyMe y buscas capital para crecer?', link: '' },
   ],
   ciudadHablaTitle: 'La ciudad habla.\n¿Ya la escuchaste?',
   ciudadHablaCards: [
-    { title: 'Marketing digital y WhatsApp Web', text: 'Forma parte del nuevo taller "Marketing Digital y WhatsApp Business" de Municipio; a través de este taller, las y los participantes aprenderán a utilizar la aplicación de WhatsApp para crear estrategias de marketing efectivas.', img: '/assets/contenido/capital-virtual.png', imgAlt: 'Capital Virtual', buttonText: 'Leer más', imageOnLeft: true },
-    { title: 'Coppel Emprende', text: 'Forma parte del nuevo taller "Marketing Digital y WhatsApp Business" de Municipio; a través de este taller, las y los participantes aprenderán a utilizar la aplicación de WhatsApp para crear estrategias de marketing efectivas.', img: '/assets/contenido/coppel-personas.jpg', imgAlt: 'Coppel Emprende', buttonText: 'Leer más', imageOnLeft: false },
-    { title: 'Adquiere un crédito FOMECH', text: 'Forma parte del nuevo taller "Marketing Digital y WhatsApp Business" de Municipio; a través de este taller, las y los participantes aprenderán a utilizar la aplicación de WhatsApp para crear estrategias de marketing efectivas.', img: '/assets/contenido/banner-fomech.jpeg', imgAlt: 'FOMECH', buttonText: 'Leer más', imageOnLeft: true },
+    { title: 'Marketing digital y WhatsApp Web', text: 'Forma parte del nuevo taller "Marketing Digital y WhatsApp Business" de Municipio; a través de este taller, las y los participantes aprenderán a utilizar la aplicación de WhatsApp para crear estrategias de marketing efectivas.', img: '/assets/contenido/capital-virtual.png', imgAlt: 'Capital Virtual', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
+    { title: 'Coppel Emprende', text: 'Forma parte del nuevo taller "Marketing Digital y WhatsApp Business" de Municipio; a través de este taller, las y los participantes aprenderán a utilizar la aplicación de WhatsApp para crear estrategias de marketing efectivas.', img: '/assets/contenido/coppel-personas.jpg', imgAlt: 'Coppel Emprende', imageLink: '', buttonText: 'Leer más', imageOnLeft: false },
+    { title: 'Adquiere un crédito FOMECH', text: 'Forma parte del nuevo taller "Marketing Digital y WhatsApp Business" de Municipio; a través de este taller, las y los participantes aprenderán a utilizar la aplicación de WhatsApp para crear estrategias de marketing efectivas.', img: '/assets/contenido/banner-fomech.jpeg', imgAlt: 'FOMECH', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
   ],
   buscasAtencionTitle: '¿Buscas atención?\nAquí nos encuentras',
   locations: [
-    { name: 'MIFAM Porvenir', address: 'Mina Dolores & Mina Los Reyes, Porvenir, Rio Sacramento Nte, 31137 Chihuahua, Chih.' },
-    { name: 'MIFAM Riberas del Sacramento', address: 'C. Río Amur esquina con Río Paraná, Chihuahua, Chih.' },
-    { name: 'MIFAM Dale', address: 'C. Trigésimo Sexta 3402, Dale, RUTA SUR II, 31050 Chihuahua, Chih.' },
-    { name: 'MIFAM Unidad Vallarta', address: '31120, Manuel González Cossío 7300, Nacional, Chihuahua, Chih.' },
+    { name: 'MIFAM Porvenir', address: 'Mina Dolores & Mina Los Reyes, Porvenir, Rio Sacramento Nte, 31137 Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
+    { name: 'MIFAM Riberas del Sacramento', address: 'C. Río Amur esquina con Río Paraná, Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
+    { name: 'MIFAM Dale', address: 'C. Trigésimo Sexta 3402, Dale, RUTA SUR II, 31050 Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
+    { name: 'MIFAM Unidad Vallarta', address: '31120, Manuel González Cossío 7300, Nacional, Chihuahua, Chih.', mapsUrl: '', mapImage: '' },
   ],
 };
 
@@ -193,6 +221,7 @@ function normalizeLanding(landing) {
             alt: String(s.alt ?? '').trim(),
             title: String(s.title ?? '').trim(),
             subtitle: String(s.subtitle ?? '').trim(),
+            link: String(s.link ?? '').trim(),
           };
         })
     : DEFAULT_LANDING.carouselSlides;
@@ -202,6 +231,7 @@ function normalizeLanding(landing) {
         text: String(c?.text ?? '').trim(),
         img: String(c?.img ?? '').trim(),
         imgAlt: String(c?.imgAlt ?? '').trim(),
+        imageLink: String(c?.imageLink ?? '').trim(),
         buttonText: String(c?.buttonText ?? 'Leer más').trim(),
         imageOnLeft: Boolean(c?.imageOnLeft),
       }))
@@ -210,18 +240,22 @@ function normalizeLanding(landing) {
     ? landing.locations.slice(0, 30).map((l) => ({
         name: String(l?.name ?? '').trim(),
         address: String(l?.address ?? '').trim(),
+        mapsUrl: String(l?.mapsUrl ?? '').trim(),
+        mapImage: String(l?.mapImage ?? '').trim(),
       }))
     : DEFAULT_LANDING.locations;
   const heroLogos = Array.isArray(landing.heroLogos)
     ? landing.heroLogos.slice(0, 12).map((logo) => ({
         src: String(logo?.src ?? '').trim() || '#',
         alt: String(logo?.alt ?? '').trim(),
+      link: String(logo?.link ?? '').trim(),
       }))
     : DEFAULT_LANDING.heroLogos;
   return {
     heroTitle: String(landing.heroTitle ?? DEFAULT_LANDING.heroTitle).trim() || DEFAULT_LANDING.heroTitle,
     heroSubtitle: String(landing.heroSubtitle ?? DEFAULT_LANDING.heroSubtitle).trim() || DEFAULT_LANDING.heroSubtitle,
     heroMascotImg: String(landing.heroMascotImg ?? DEFAULT_LANDING.heroMascotImg).trim() || DEFAULT_LANDING.heroMascotImg,
+    heroMascotLink: String(landing.heroMascotLink ?? '').trim(),
     heroCtaText: String(landing.heroCtaText ?? DEFAULT_LANDING.heroCtaText).trim() || DEFAULT_LANDING.heroCtaText,
     heroLogos: heroLogos.length ? heroLogos : DEFAULT_LANDING.heroLogos,
     headlineText: String(landing.headlineText ?? DEFAULT_LANDING.headlineText).trim() || DEFAULT_LANDING.headlineText,
@@ -244,6 +278,9 @@ router.get('/site', async (req, res, next) => {
           logoMunicipio: doc.logoMunicipio ?? DEFAULT_SITE_CONFIG.logoMunicipio,
           logoIdea: doc.logoIdea ?? DEFAULT_SITE_CONFIG.logoIdea,
           logoChihuahua: doc.logoChihuahua ?? DEFAULT_SITE_CONFIG.logoChihuahua,
+          logoMunicipioLink: doc.logoMunicipioLink ?? '',
+          logoIdeaLink: doc.logoIdeaLink ?? '',
+          logoChihuahuaLink: doc.logoChihuahuaLink ?? '',
           landing: normalizeLanding(doc.landing),
         }
       : { ...DEFAULT_SITE_CONFIG, landing: DEFAULT_LANDING };
@@ -258,6 +295,7 @@ router.get('/site', async (req, res, next) => {
 router.put('/site', requireCmsAuth, async (req, res, next) => {
   try {
     const body = req.body || {};
+    assertValidLandingLinks(body.landing);
     const navItems = Array.isArray(body.navItems) ? body.navItems : undefined;
     const update = { updated_at: new Date() };
     if (navItems) {
@@ -269,6 +307,12 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
     if (body.logoMunicipio !== undefined) update.logoMunicipio = String(body.logoMunicipio).trim();
     if (body.logoIdea !== undefined) update.logoIdea = String(body.logoIdea).trim();
     if (body.logoChihuahua !== undefined) update.logoChihuahua = String(body.logoChihuahua).trim();
+    for (const key of ['logoMunicipioLink', 'logoIdeaLink', 'logoChihuahuaLink']) {
+      if (body[key] !== undefined) {
+        if (!isValidLink(body[key])) return res.status(400).json({ error: 'La URL del logo no es válida' });
+        update[key] = String(body[key]).trim();
+      }
+    }
     if (body.landing !== undefined) update.landing = normalizeLanding(body.landing);
 
     const db = await getDb();
@@ -284,6 +328,9 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
       logoMunicipio: doc?.logoMunicipio ?? DEFAULT_SITE_CONFIG.logoMunicipio,
       logoIdea: doc?.logoIdea ?? DEFAULT_SITE_CONFIG.logoIdea,
       logoChihuahua: doc?.logoChihuahua ?? DEFAULT_SITE_CONFIG.logoChihuahua,
+      logoMunicipioLink: doc?.logoMunicipioLink ?? '',
+      logoIdeaLink: doc?.logoIdeaLink ?? '',
+      logoChihuahuaLink: doc?.logoChihuahuaLink ?? '',
       landing: normalizeLanding(doc?.landing),
     };
     res.json(payload);
@@ -320,7 +367,8 @@ router.get('/pages/:slug', async (req, res, next) => {
 /** Crea una página */
 router.post('/pages', requireCmsAuth, async (req, res, next) => {
   try {
-    const { slug, title, body, image } = req.body || {};
+    const { slug, title, body, image, imageLink } = req.body || {};
+    if (!isValidLink(imageLink)) return res.status(400).json({ error: 'La URL de la imagen no es válida' });
     if (!slug || !title) return res.status(400).json({ error: 'Faltan slug o title' });
     const db = await getDb();
     const col = db.collection('cms_pages');
@@ -333,6 +381,7 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
       title,
       body: safeBody,
       image: image ?? '',
+      imageLink: String(imageLink ?? '').trim(),
       created_at: now,
       updated_at: now
     };
@@ -348,13 +397,15 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
 router.put('/pages/:slug', requireCmsAuth, async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const { title, body, image } = req.body || {};
+    const { title, body, image, imageLink } = req.body || {};
+    if (imageLink !== undefined && !isValidLink(imageLink)) return res.status(400).json({ error: 'La URL de la imagen no es válida' });
     const db = await getDb();
     const col = db.collection('cms_pages');
     const update = { updated_at: new Date() };
     if (title !== undefined) update.title = title;
     if (body !== undefined) update.body = sanitizePageBody(body);
     if (image !== undefined) update.image = image ?? '';
+    if (imageLink !== undefined) update.imageLink = String(imageLink ?? '').trim();
     const r = await col.findOneAndUpdate(
       { slug },
       { $set: update },
