@@ -18,7 +18,6 @@ export const defaultSearchComboOptions = [
           { ComboBoxThirdText: 'Mi situación fiscal', ComboBoxThirdUrl: '/pagina/mi-situacion-fiscal' },
           { ComboBoxThirdText: 'SAT en el SARE', ComboBoxThirdUrl: '/pagina/sat-en-el-sare' },
           { ComboBoxThirdText: 'Guía para apertura de negocios', ComboBoxThirdUrl: '/pagina/guia-para-apertura-de-negocios' },
-          { ComboBoxThirdText: 'Emprendimientos con base tecnológica', ComboBoxThirdUrl: '/pagina/emprendimientos-con-base-tecnologica' },
         ],
       },
       {
@@ -26,25 +25,20 @@ export const defaultSearchComboOptions = [
         ComboBoxMatchElementUrl: [
           { ComboBoxThirdText: 'MIFAM', ComboBoxThirdUrl: '/pagina/mifam' },
           { ComboBoxThirdText: 'ENCES', ComboBoxThirdUrl: '/pagina/ences' },
-          { ComboBoxThirdText: 'Capital de emprendimiento', ComboBoxThirdUrl: '/pagina/capital-de-emprendimiento' },
-          { ComboBoxThirdText: 'Aulas digitales', ComboBoxThirdUrl: '/pagina/aulas-digitales' },
         ],
       },
       {
         ComboBoxMatchElementText: 'Ferias y Eventos',
         ComboBoxMatchElementUrl: [
-          { ComboBoxThirdText: 'Tianguis de productores', ComboBoxThirdUrl: '/pagina/tianguis-de-productores' },
           { ComboBoxThirdText: 'Impulso a eventos y festividades', ComboBoxThirdUrl: '/pagina/impulso-a-eventos-y-festividades' },
         ],
       },
       {
         ComboBoxMatchElementText: 'Apoyos y Financiamientos',
         ComboBoxMatchElementUrl: [
-          { ComboBoxThirdText: 'Proyectos productivos', ComboBoxThirdUrl: '/pagina/proyectos-productivos' },
+          { ComboBoxThirdText: 'Vende Tu Proyecto', ComboBoxThirdUrl: '/pagina/vende-tu-proyecto' },
           { ComboBoxThirdText: 'FOMECH', ComboBoxThirdUrl: '/pagina/fomech' },
           { ComboBoxThirdText: 'Impulso municipal', ComboBoxThirdUrl: '/pagina/impulso-municipal' },
-          { ComboBoxThirdText: 'FIDEAPECH', ComboBoxThirdUrl: '/pagina/fideapech' },
-          { ComboBoxThirdText: 'FIPES', ComboBoxThirdUrl: '/pagina/fipes' },
         ],
       },
       {
