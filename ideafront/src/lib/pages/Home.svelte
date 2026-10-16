@@ -369,7 +369,7 @@
             {#if slide.type === 'info'}
               <div class="mx-1 flex min-h-[280px] flex-col justify-center rounded-2xl bg-gradient-to-br from-idea-navy to-idea-dark p-6 text-white shadow-md">
                 <p class="text-center text-base">{slide.text}</p>
-                <button type="button" class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md transition hover:opacity-90" on:click|preventDefault|stopPropagation>{slide.cta ?? 'Descubre más'}</button>
+                {#if slide.ctaLink}<a href={slide.ctaLink} target={slide.ctaTarget ?? '_self'} rel={slide.ctaTarget === '_blank' ? 'noopener noreferrer' : undefined} class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md transition hover:opacity-90" on:click|stopPropagation>{slide.cta ?? 'Descubre más'}</a>{:else}<button type="button" class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md transition hover:opacity-90" on:click|preventDefault|stopPropagation>{slide.cta ?? 'Descubre más'}</button>{/if}
                 <p class="mt-3 text-center text-xs text-white/80">{slide.sub}</p>
               </div>
             {:else}
@@ -408,7 +408,7 @@
           {#if slide.type === 'info'}
             <div class="flex w-full flex-col justify-center rounded-2xl p-4 shadow-md {i === carouselIndex ? 'min-h-[380px] bg-gradient-to-br from-idea-navy to-idea-dark text-white shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px] md:p-8' : 'min-h-[260px] bg-slate-100 text-slate-700 md:p-5'}">
               <p class="text-center {i === carouselIndex ? 'text-base md:text-lg' : 'text-sm'}">{slide.text}</p>
-              <button type="button" class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" on:click|preventDefault|stopPropagation>{slide.cta ?? 'Descubre más'}</button>
+              {#if slide.ctaLink}<a href={slide.ctaLink} target={slide.ctaTarget ?? '_self'} rel={slide.ctaTarget === '_blank' ? 'noopener noreferrer' : undefined} class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" on:click|stopPropagation>{slide.cta ?? 'Descubre más'}</a>{:else}<button type="button" class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" on:click|preventDefault|stopPropagation>{slide.cta ?? 'Descubre más'}</button>{/if}
               <p class="mt-3 text-center text-xs md:text-sm {i === carouselIndex ? 'text-white/80' : 'text-slate-500'}">{slide.sub}</p>
             </div>
           {:else}

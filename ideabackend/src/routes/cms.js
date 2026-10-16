@@ -28,6 +28,7 @@ function assertValidLandingLinks(landing) {
     landing?.heroMascotLink,
     ...(Array.isArray(landing?.heroLogos) ? landing.heroLogos.map((x) => x?.link) : []),
     ...(Array.isArray(landing?.carouselSlides) ? landing.carouselSlides.map((x) => x?.link) : []),
+    ...(Array.isArray(landing?.carouselSlides) ? landing.carouselSlides.map((x) => x?.ctaLink) : []),
     ...(Array.isArray(landing?.ciudadHablaCards) ? landing.ciudadHablaCards.map((x) => x?.imageLink) : []),
     ...(Array.isArray(landing?.locations) ? landing.locations.map((x) => x?.mapsUrl) : []),
   ];
@@ -212,6 +213,8 @@ function normalizeLanding(landing) {
               type: 'info',
               text: String(s.text ?? '').trim(),
               cta: String(s.cta ?? 'Descubre más').trim(),
+              ctaLink: String(s.ctaLink ?? '').trim(),
+              ctaTarget: s.ctaTarget === '_blank' ? '_blank' : '_self',
               sub: String(s.sub ?? '').trim(),
             };
           }

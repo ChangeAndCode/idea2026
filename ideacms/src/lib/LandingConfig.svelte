@@ -17,7 +17,7 @@
     headlineText: 'Lo que pasa en Chihuahua,\nempieza aquí.',
     carouselSlides: [
       { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' },
-      { type: 'info', text: '', cta: 'Descubre más', sub: '' },
+      { type: 'info', text: '', cta: 'Descubre más', ctaLink: '', ctaTarget: '_self', sub: '' },
       { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' },
     ],
     ciudadHablaTitle: 'La ciudad habla.\n¿Ya la escuchaste?',
@@ -72,7 +72,7 @@
           heroCtaText: L.heroCtaText ?? DEFAULT_LANDING.heroCtaText,
           heroLogos: Array.isArray(L.heroLogos) && L.heroLogos.length ? L.heroLogos.map((logo) => ({ src: logo.src ?? '', alt: logo.alt ?? '', link: logo.link ?? '' })) : DEFAULT_LANDING.heroLogos,
           headlineText: L.headlineText ?? DEFAULT_LANDING.headlineText,
-          carouselSlides: Array.isArray(L.carouselSlides) && L.carouselSlides.length ? L.carouselSlides.map((s) => ({ ...s, link: s.link ?? '', type: s.type === 'info' ? 'info' : 'image' })) : DEFAULT_LANDING.carouselSlides,
+          carouselSlides: Array.isArray(L.carouselSlides) && L.carouselSlides.length ? L.carouselSlides.map((s) => ({ ...s, link: s.link ?? '', ctaLink: s.ctaLink ?? '', ctaTarget: s.ctaTarget === '_blank' ? '_blank' : '_self', type: s.type === 'info' ? 'info' : 'image' })) : DEFAULT_LANDING.carouselSlides,
           ciudadHablaTitle: L.ciudadHablaTitle ?? DEFAULT_LANDING.ciudadHablaTitle,
           ciudadHablaCards: Array.isArray(L.ciudadHablaCards) && L.ciudadHablaCards.length ? L.ciudadHablaCards.map((c) => ({ ...DEFAULT_LANDING.ciudadHablaCards[0], ...c, imageLink: c.imageLink ?? '', imageOnLeft: c.imageOnLeft !== false })) : DEFAULT_LANDING.ciudadHablaCards,
           buscasAtencionTitle: L.buscasAtencionTitle ?? DEFAULT_LANDING.buscasAtencionTitle,
@@ -90,6 +90,7 @@
     const links = [
       ...(landing.heroLogos ?? []).map((x) => x.link),
       ...(landing.carouselSlides ?? []).map((x) => x.link),
+      ...(landing.carouselSlides ?? []).map((x) => x.ctaLink),
       ...(landing.ciudadHablaCards ?? []).map((x) => x.imageLink),
     ];
     if (links.some((link) => !isValidLink(link))) {
@@ -111,7 +112,7 @@
   }
 
   function addSlide(type) {
-    landing = { ...landing, carouselSlides: [...landing.carouselSlides, type === 'info' ? { type: 'info', text: '', cta: 'Descubre más', sub: '' } : { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' }] };
+  landing = { ...landing, carouselSlides: [...landing.carouselSlides, type === 'info' ? { type: 'info', text: '', cta: 'Descubre más', ctaLink: '', ctaTarget: '_self', sub: '' } : { type: 'image', img: '', alt: '', title: '', subtitle: '', link: '' }] };
   }
   function removeSlide(i) {
     landing = { ...landing, carouselSlides: landing.carouselSlides.filter((_, idx) => idx !== i) };
@@ -357,9 +358,29 @@
             </div>
             {#if slide.type === 'info'}
               <div class="space-y-2">
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Texto principal" value={slide.text} oninput={(e) => setSlide(i, 'text', e.target.value)} />
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Texto del botón" value={slide.cta} oninput={(e) => setSlide(i, 'cta', e.target.value)} />
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Línea pequeña debajo" value={slide.sub} oninput={(e) => setSlide(i, 'sub', e.target.value)} />
+                <label class="block">
+                  <span class="cms-label">Texto principal de la tarjeta</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="Conecta con experiencias..." value={slide.text} oninput={(e) => setSlide(i, 'text', e.target.value)} />
+                </label>
+                <label class="block">
+                  <span class="cms-label">Texto del botón</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="Descubre más" value={slide.cta} oninput={(e) => setSlide(i, 'cta', e.target.value)} />
+                </label>
+                <label class="block">
+                  <span class="cms-label">Enlace del botón</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="/cursos o https://ejemplo.com" value={slide.ctaLink ?? ''} oninput={(e) => setSlide(i, 'ctaLink', e.target.value)} />
+                </label>
+                <label class="block">
+                  <span class="cms-label">Abrir enlace en</span>
+                  <select class="cms-input !py-2 text-sm" value={slide.ctaTarget ?? '_self'} onchange={(e) => setSlide(i, 'ctaTarget', e.target.value)}>
+                  <option value="_self">Abrir en la misma pestaña</option>
+                  <option value="_blank">Abrir en una nueva pestaña</option>
+                  </select>
+                </label>
+                <label class="block">
+                  <span class="cms-label">Texto complementario</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="Línea pequeña debajo" value={slide.sub} oninput={(e) => setSlide(i, 'sub', e.target.value)} />
+                </label>
               </div>
             {:else}
               <div class="space-y-2">
@@ -370,10 +391,22 @@
                   value={slide.img}
                   onChange={(v) => setSlide(i, 'img', v)}
                 />
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Alt" value={slide.alt} oninput={(e) => setSlide(i, 'alt', e.target.value)} />
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Título" value={slide.title} oninput={(e) => setSlide(i, 'title', e.target.value)} />
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Subtítulo" value={slide.subtitle} oninput={(e) => setSlide(i, 'subtitle', e.target.value)} />
-                <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace / URL (opcional)" value={slide.link ?? ''} oninput={(e) => setSlide(i, 'link', e.target.value)} />
+                <label class="block">
+                  <span class="cms-label">Texto alternativo de la imagen</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="Describe la imagen" value={slide.alt} oninput={(e) => setSlide(i, 'alt', e.target.value)} />
+                </label>
+                <label class="block">
+                  <span class="cms-label">Título de la tarjeta</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="Título" value={slide.title} oninput={(e) => setSlide(i, 'title', e.target.value)} />
+                </label>
+                <label class="block">
+                  <span class="cms-label">Subtítulo de la tarjeta</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="Subtítulo" value={slide.subtitle} oninput={(e) => setSlide(i, 'subtitle', e.target.value)} />
+                </label>
+                <label class="block">
+                  <span class="cms-label">Enlace de la imagen</span>
+                  <input type="text" class="cms-input !py-2 text-sm" placeholder="/pagina/ejemplo o https://ejemplo.com" value={slide.link ?? ''} oninput={(e) => setSlide(i, 'link', e.target.value)} />
+                </label>
               </div>
             {/if}
           </li>
