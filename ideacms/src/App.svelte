@@ -8,6 +8,7 @@
   import LandingConfig from './lib/LandingConfig.svelte';
   import UserManagement from './lib/UserManagement.svelte';
   import VisitStatistics from './lib/VisitStatistics.svelte';
+  import MenuFilterConfig from './lib/menuFilterConfig.svelte';
 
   let clerkReady = $state(false);
   let isSignedIn = $state(false);
@@ -115,6 +116,9 @@
   function goLanding() {
     route.set({ path: 'landing', slug: null });
   }
+  function goFilters() {
+    route.set({ path: 'filters', slug: null });
+  }
   function goUsers() {
     route.set({ path: 'users', slug: null });
   }
@@ -124,6 +128,7 @@
 
   const isContent = $derived(path === 'list' || path === 'edit' || path === 'create');
   const isLanding = $derived(path === 'landing');
+  const isFilters = $derived(path === 'filters');
   const isSite = $derived(path === 'site');
   const isUsers = $derived(path === 'users');
   const isAnalytics = $derived(path === 'analytics');
@@ -132,6 +137,8 @@
       ? (path === 'create' ? 'Nueva página' : path === 'edit' && slug ? 'Editar página' : 'Contenido')
       : isLanding
         ? 'Página de inicio'
+        : isFilters
+          ? 'Menú de filtros'
         : isSite
           ? 'Menú y logos'
           : isUsers
@@ -240,6 +247,18 @@
         <li>
           <button
             type="button"
+            class="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {isFilters ? 'bg-white/15 text-white' : 'text-white/90 hover:bg-white/10 hover:text-white'}"
+            onclick={() => { goFilters(); sidebarOpen = false; }}
+          >
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/90" aria-hidden="true">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M6 12h12M10 18h4" /></svg>
+            </span>
+            <span>Menú de filtros</span>
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
             class="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {isSite ? 'bg-white/15 text-white' : 'text-white/90 hover:bg-white/10 hover:text-white'}"
             onclick={() => { goSite(); sidebarOpen = false; }}
           >
@@ -306,6 +325,8 @@
           <SiteConfig />
         {:else if path === 'landing'}
           <LandingConfig />
+        {:else if path === 'filters'}
+          <MenuFilterConfig />
         {:else if path === 'list'}
           <PageList />
         {:else if path === 'edit' && slug}
