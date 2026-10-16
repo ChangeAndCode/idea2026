@@ -28,6 +28,7 @@
   let logoMunicipioLink = $state('');
   let logoIdeaLink = $state('');
   let logoChihuahuaLink = $state('');
+  let socialLinks = $state([]);
 
   onMount(async () => {
     try {
@@ -49,6 +50,8 @@
       logoMunicipioLink = data.logoMunicipioLink ?? '';
       logoIdeaLink = data.logoIdeaLink ?? '';
       logoChihuahuaLink = data.logoChihuahuaLink ?? '';
+      const socialRes = await fetch(apiUrl('/api/cms/social-links'));
+      if (socialRes.ok) socialLinks = (await socialRes.json()).filter((item) => item.enabled !== false && item.url);
     } catch (_) {
       /* Mantener valores por defecto si no hay backend o hay error de red */
     }
@@ -187,13 +190,6 @@
 <footer class="bg-idea-navy py-12 text-white">
   <div class="mx-auto max-w-7xl px-4 text-center">
     <h3 class="text-xl font-semibold">Síguenos en nuestras redes</h3>
-    <div class="mt-4 flex justify-center gap-4">
-      <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label="Facebook">
-        <img src="/assets/logos/Facebook.png" alt="" class="h-16 w-16 object-contain" />
-      </a>
-      <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label="Instagram">
-        <img src="/assets/logos/Instagram.png" alt="" class="h-16 w-16 object-contain" />
-      </a>
-    </div>
+    {#if socialLinks.length > 0}<div class="mt-4 flex justify-center gap-4">{#each socialLinks as social}<a href={social.url} target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label={social.label}><img src={social.icon} alt={social.label} class="h-16 w-16 object-contain" /></a>{/each}</div>{/if}
   </div>
 </footer>

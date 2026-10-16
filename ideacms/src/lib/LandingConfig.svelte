@@ -1,5 +1,5 @@
 <script>
-  import { getSiteConfig, updateSiteConfig } from './api.js';
+  import { getSiteConfig, updateSiteConfig, getSocialLinks, updateSocialLinks } from './api.js';
   import ImageUploadField from './ImageUploadField.svelte';
 
   const DEFAULT_LANDING = {
@@ -37,6 +37,7 @@
     { id: 'carousel', label: 'Carrusel' },
     { id: 'ciudadHabla', label: 'La ciudad habla' },
     { id: 'buscasAtencion', label: '¿Buscas atención?' },
+    { id: 'socials', label: 'Redes sociales' },
   ];
 
   let landing = $state({ ...DEFAULT_LANDING });
@@ -45,6 +46,8 @@
   let savingSection = $state(null);
   let error = $state('');
   let savedSection = $state(null);
+  let socialLinks = $state([]);
+  let socialDeleteIndex = $state(null);
 
   function isValidLink(value) {
     const link = String(value ?? '').trim();
@@ -62,6 +65,7 @@
     error = '';
     try {
       const data = await getSiteConfig();
+      socialLinks = await getSocialLinks();
       const L = data.landing;
       if (L && typeof L === 'object') {
         landing = {
@@ -86,7 +90,36 @@
     }
   }
 
+  function addSocial() {
+    socialLinks = [
+      ...socialLinks,
+      { label: '', icon: '', url: '', enabled: true },
+    ];
+  }
+
+  function removeSocial(index) {
+    socialLinks = socialLinks.filter((_, i) => i !== index);
+  }
+
+  function confirmRemoveSocial() {
+    if (socialDeleteIndex === null) return;
+    removeSocial(socialDeleteIndex);
+    socialDeleteIndex = null;
+  }
+
   async function saveSection(sectionId) {
+    if (sectionId === 'socials') {
+      savingSection = sectionId;
+      error = '';
+      try {
+        if (socialLinks.some((item) => !String(item.label ?? '').trim() || !String(item.icon ?? '').trim() || !String(item.url ?? '').trim())) throw new Error('Completa el nombre, icono y URL de todas las redes antes de guardar.');
+        socialLinks = await updateSocialLinks(socialLinks);
+        savedSection = sectionId;
+        setTimeout(() => { savedSection = null; }, 2500);
+      } catch (e) { error = e.message; }
+      finally { savingSection = null; }
+      return;
+    }
     const links = [
       ...(landing.heroLogos ?? []).map((x) => x.link),
       ...(landing.carouselSlides ?? []).map((x) => x.link),
@@ -202,7 +235,6 @@
   {#if error}
     <div class="mb-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200 px-3 py-2" role="alert">{error}</div>
   {/if}
-
   {#if loading}
     <div class="cms-card p-8">
       <div class="h-8 rounded-lg bg-slate-100 animate-pulse w-1/2"></div>
@@ -234,7 +266,43 @@
         <div class="flex items-center gap-2">
           {#if savedSection === 'hero'}
             <span class="text-sm text-green-600 font-medium">Guardado</span>
-          {/if}
+     {:else if activeTab === 'socials'}
+     <section class="cms-card p-8">
+       <div class="flex items-center justify-between gap-3 mb-6">
+         <div><h3 class="text-base font-semibold text-slate-800">Redes sociales</h3><p class="text-sm text-slate-500 mt-1">Administra los enlaces del pie de página.</p></div>
+         <div class="flex items-center gap-3">
+           {#if savedSection === 'socials'}
+             <span class="text-sm font-medium text-green-600">Guardado exitosamente</span>
+           {/if}
+           <button class="cms-btn-primary" onclick={() => saveSection('socials')} disabled={savingSection === 'socials'}>{savingSection === 'socials' ? 'Guardando…' : 'Guardar'}</button>
+         </div>
+       </div>
+       <div class="space-y-3">
+         {#each socialLinks as social, i}
+            <div class="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+             <div class="w-full space-y-3">
+               <div class="flex flex-wrap items-center gap-3">
+                 <input class="cms-input flex-1" value={social.label} placeholder="Nombre de la red social" oninput={(e) => { social.label = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
+                 <input class="cms-input flex-1" value={social.url} placeholder="https://ejemplo.com/perfil" oninput={(e) => { social.url = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
+                 <button class="text-2xl text-red-600" onclick={() => removeSocial(i)}>×</button>
+               </div>
+               <ImageUploadField
+                 compact
+                 id="social-icon-{i}"
+                 label="Icono de la red social"
+                 value={social.icon}
+                 requiredWidth={128}
+                 requiredHeight={128}
+                 onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
+               />
+               <p class="text-xs text-slate-500">Usa un icono cuadrado de 128 × 128 píxeles, preferentemente PNG con fondo transparente.</p>
+             </div>
+           </div>
+         {/each}
+       </div>
+       <button class="cms-btn-secondary mt-4" onclick={addSocial}>+ Agregar red social</button>
+     </section>
+     {/if}
           <button type="button" class="cms-btn-primary !py-2 !px-4 text-sm" disabled={savingSection === 'hero'} onclick={() => saveSection('hero')}>
             {savingSection === 'hero' ? 'Guardando…' : 'Guardar'}
           </button>
@@ -514,8 +582,56 @@
           </li>
         {/each}
       </ul>
-      <button type="button" class="mt-3 cms-btn-secondary !py-2 !px-3 text-sm" onclick={addLocation}>+ Añadir ubicación</button>
-    </section>
-    {/if}
+       <button type="button" class="mt-3 cms-btn-secondary !py-2 !px-3 text-sm" onclick={addLocation}>+ Añadir ubicación</button>
+     </section>
+
+     {:else if activeTab === 'socials'}
+     <section class="cms-card p-8">
+       <div class="flex items-center justify-between gap-3 mb-6">
+         <div><h3 class="text-base font-semibold text-slate-800">Redes sociales</h3><p class="text-sm text-slate-500 mt-1">Administra los enlaces del pie de página.</p></div>
+         <button class="cms-btn-primary" onclick={() => saveSection('socials')} disabled={savingSection === 'socials'}>{savingSection === 'socials' ? 'Guardando…' : 'Guardar'}</button>
+       </div>
+        {#if savedSection === 'socials'}
+          <p class="mb-4 text-sm font-medium text-green-600" role="status">
+            Guardado exitosamente
+          </p>
+        {/if}
+       <div class="space-y-3">
+         {#each socialLinks as social, i}
+            <div class="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div class="flex flex-col items-stretch gap-3 pr-10">
+                <input class="cms-input w-full" value={social.label} placeholder="Nombre de la red social" oninput={(e) => { social.label = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
+                <input class="cms-input w-full" value={social.url} placeholder="https://ejemplo.com/perfil" oninput={(e) => { social.url = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
+              </div>
+              <ImageUploadField
+                compact
+                id="social-icon-{i}"
+                label="Icono de la red social (obligatorio)"
+                value={social.icon}
+                requiredWidth={128}
+                requiredHeight={128}
+                onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
+              />
+              <p class="text-xs text-slate-500">Medida obligatoria: 128 × 128 píxeles. Recomendado: PNG con fondo transparente.</p>
+               <button class="absolute right-3 top-3 text-2xl text-red-600" onclick={() => socialDeleteIndex = i}>×</button>
+ </div>
+
+ {#if socialDeleteIndex !== null}
+   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+     <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+       <h2 class="text-lg font-semibold text-slate-800">¿Eliminar esta red social?</h2>
+       <p class="mt-2 text-sm text-slate-600">La tarjeta se quitará de la configuración. Esta acción no se puede deshacer.</p>
+       <div class="mt-5 flex justify-end gap-2">
+         <button type="button" class="cms-btn-secondary" onclick={() => socialDeleteIndex = null}>Cancelar</button>
+         <button type="button" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700" onclick={confirmRemoveSocial}>Eliminar</button>
+       </div>
+     </div>
+   </div>
+ {/if}
+         {/each}
+       </div>
+       <button class="cms-btn-secondary mt-4" onclick={addSocial}>+ Agregar red social</button>
+     </section>
+     {/if}
   {/if}
 </div>
