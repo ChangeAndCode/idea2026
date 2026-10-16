@@ -18,6 +18,14 @@ export function normalizePath(path = '/') {
   return raw.slice(0, 500) || '/';
 }
 
+function pathFilter(path = '') {
+  const value = String(path ?? '').trim();
+  if (!value) return null;
+  const normalized = value.startsWith('/') ? value : `/${value}`;
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return { $regex: escaped, $options: 'i' };
+}
+
 function displayTitle(path, title = '') {
   if (title && title !== 'IDEA - Municipio de Chihuahua') return title;
   if (path === '/') return 'Inicio';
@@ -89,7 +97,8 @@ export async function getAnalyticsSummary({ from, to, path } = {}) {
   const db = await getDb();
   const { start, end } = dateRange(from, to);
   const match = { visitedAt: { $gte: start, $lte: end } };
-  if (path) match.path = normalizePath(path);
+  const pathQuery = pathFilter(path);
+  if (pathQuery) match.path = pathQuery;
   const [total, unique] = await Promise.all([
     db.collection(COLLECTION).countDocuments(match),
     db.collection(COLLECTION).distinct('visitorIdHash', match),
@@ -104,7 +113,8 @@ export async function getPopularPages({ from, to, path } = {}) {
   const db = await getDb();
   const { start, end } = dateRange(from, to);
   const match = { visitedAt: { $gte: start, $lte: end } };
-  if (path) match.path = normalizePath(path);
+  const pathQuery = pathFilter(path);
+  if (pathQuery) match.path = pathQuery;
   const pages = await db.collection(COLLECTION).aggregate([
     { $match: match },
     { $sort: { visitedAt: -1 } },
@@ -120,7 +130,8 @@ export async function getTimeSeries({ from, to, path } = {}) {
   const db = await getDb();
   const { start, end } = dateRange(from, to);
   const match = { visitedAt: { $gte: start, $lte: end } };
-  if (path) match.path = normalizePath(path);
+  const pathQuery = pathFilter(path);
+  if (pathQuery) match.path = pathQuery;
   return db.collection(COLLECTION).aggregate([
     { $match: match },
     { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$visitedAt' } }, visits: { $sum: 1 } } },
@@ -133,7 +144,8 @@ export async function getVisitHistory({ from, to, path, page = 1, limit = 25 } =
   const db = await getDb();
   const { start, end } = dateRange(from, to);
   const match = { visitedAt: { $gte: start, $lte: end } };
-  if (path) match.path = normalizePath(path);
+  const pathQuery = pathFilter(path);
+  if (pathQuery) match.path = pathQuery;
   const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
   const safePage = Math.max(Number(page) || 1, 1);
   const [items, total] = await Promise.all([

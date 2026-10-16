@@ -12,6 +12,7 @@
   let history = $state({ items: [], total: 0, page: 1, limit: 25 });
   let loading = $state(true);
   let error = $state('');
+  let searchTimer;
 
   async function load() {
     loading = true;
@@ -38,8 +39,22 @@
     load();
   }
 
+  function onPathInput() {
+    clearTimeout(searchTimer);
+  }
+
+  function applyPathFilter() {
+    history = { ...history, page: 1 };
+    load();
+  }
+
   function formatDate(value) {
     return value ? new Date(value).toLocaleString('es-MX') : '—';
+  }
+
+  function chartDate(value) {
+    const [, month, day] = value.split('-');
+    return `${day}/${month}`;
   }
 
   function pageTitle(item) {
@@ -80,10 +95,20 @@
     <div class="grid gap-6 lg:grid-cols-2">
       <section class="cms-card p-6">
         <h4 class="font-semibold text-slate-800">Actividad diaria</h4>
-        <div class="mt-6 flex h-52 items-end gap-1 border-b border-l border-slate-200 px-2 pb-1">
-          {#each series as item}<div class="group flex h-full flex-1 items-end" title={`${item.date}: ${item.visits}`}><div class="w-full rounded-t bg-idea-bright transition hover:bg-idea-dark" style={`height: ${(item.visits / maxVisits) * 100}%`}></div></div>{/each}
+        <div class="mt-6 overflow-x-auto border-b border-l border-slate-200 px-2 pb-1">
+          <div class="flex h-64 min-w-full items-end gap-2">
+            {#each series as item}
+              {@const barHeight = Math.max((item.visits / maxVisits) * 100, 4)}
+              <div class="group relative flex h-full min-w-10 flex-1 flex-col items-center justify-end" title={`${item.date}: ${item.visits} visitas`}>
+                <span class="mb-1 text-xs font-semibold text-idea-dark">{item.visits}</span>
+                <div class="w-full rounded-t bg-idea-bright transition hover:bg-idea-dark" style={`height: ${barHeight}%`}></div>
+                <span class="mt-3 whitespace-nowrap text-[10px] text-slate-500">{chartDate(item.date)}</span>
+              </div>
+            {/each}
+          </div>
         </div>
-        <p class="mt-2 text-xs text-slate-500">{series.length ? `${series[0].date} — ${series[series.length - 1].date}` : 'Sin datos en el periodo'}</p>
+        <p class="mt-8 text-xs text-slate-500">{series.length ? `Escala: 0 a ${maxVisits} visitas por día` : 'Sin datos en el periodo'}</p>
+        {#if series.length}<p class="mt-1 text-xs text-slate-500">Año: {series[0].date.slice(0, 4)}</p>{/if}
       </section>
       <section class="cms-card p-6">
         <h4 class="font-semibold text-slate-800">Páginas más visitadas</h4>
@@ -92,7 +117,7 @@
     </div>
 
     <section class="cms-card overflow-hidden">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-6"><h4 class="font-semibold text-slate-800">Historial de visitas</h4><input class="cms-input !w-auto !py-2 text-sm" placeholder="Filtrar por ruta" bind:value={path} /></div>
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-6"><h4 class="font-semibold text-slate-800">Historial de visitas</h4><div class="flex gap-2"><input class="cms-input !w-auto !py-2 text-sm" placeholder="Filtrar por ruta" bind:value={path} onkeydown={(event) => event.key === 'Enter' && applyPathFilter()} /><button type="button" class="cms-btn-primary !py-2 text-sm" onclick={applyPathFilter}>Buscar</button></div></div>
       <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="px-6 py-3">Fecha y hora</th><th class="px-6 py-3">Página</th><th class="px-6 py-3">Fuente</th></tr></thead><tbody class="divide-y divide-slate-100">{#each history.items as item}<tr><td class="whitespace-nowrap px-6 py-3 text-slate-500">{formatDate(item.visitedAt)}</td><td class="px-6 py-3"><div class="text-base font-semibold text-slate-700">{pageTitle(item)}</div><div class="mt-1 text-xs text-slate-400">{item.path}</div></td><td class="px-6 py-3 text-slate-500">{item.source || 'direct'}</td></tr>{:else}<tr><td colspan="3" class="px-6 py-8 text-center text-slate-500">Sin visitas registradas.</td></tr>{/each}</tbody></table></div>
       <div class="flex items-center justify-between border-t border-slate-200 px-6 py-3 text-sm text-slate-500"><span>{history.total ?? 0} registros</span><div class="flex gap-2"><button class="cms-btn-secondary !px-3 !py-1.5" disabled={history.page <= 1} onclick={() => { history = { ...history, page: history.page - 1 }; load(); }}>Anterior</button><span class="px-2 py-1.5">Página {history.page}</span><button class="cms-btn-secondary !px-3 !py-1.5" disabled={history.page * history.limit >= history.total} onclick={() => { history = { ...history, page: history.page + 1 }; load(); }}>Siguiente</button></div></div>
     </section>
