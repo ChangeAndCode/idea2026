@@ -49,6 +49,8 @@ export async function getPages() {
 
 export async function getSearchComboConfig() { const r = await fetch(`${base}/search-combo`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
 export async function updateSearchComboConfig(data) { const r = await fetch(`${base}/search-combo`, { method: 'PUT', headers: await authHeaders(), body: JSON.stringify(data) }); if (!r.ok) throw new Error((await r.json()).error || await r.text()); return r.json(); }
+export async function getSocialLinks() { const r = await fetch(`${base}/social-links`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+export async function updateSocialLinks(items) { const r = await fetch(`${base}/social-links`, { method: 'PUT', headers: await authHeaders(), body: JSON.stringify({ items }) }); if (!r.ok) throw new Error((await r.json()).error || await r.text()); return r.json(); }
 
 export async function getPage(slug) {
   const r = await fetch(`${base}/pages/${encodeURIComponent(slug)}`);
