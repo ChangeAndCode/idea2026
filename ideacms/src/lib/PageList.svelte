@@ -7,6 +7,8 @@
   let error = $state('');
   let deleting = $state(null);
   let message = $state('');
+  let deleteSlug = $state(null);
+  let deleteTitle = $state('');
 
   async function load() {
     loading = true;
@@ -29,7 +31,6 @@
   }
 
   async function remove(slug) {
-    if (!confirm('¿Eliminar esta página? No se puede deshacer.')) return;
     deleting = slug;
     message = '';
     try {
@@ -42,6 +43,19 @@
     } finally {
       deleting = null;
     }
+  }
+
+  function askDelete(page) {
+    deleteSlug = page.slug;
+    deleteTitle = page.title;
+  }
+
+  async function confirmDelete() {
+    if (!deleteSlug) return;
+    const slug = deleteSlug;
+    deleteSlug = null;
+    deleteTitle = '';
+    await remove(slug);
   }
 
   load();
@@ -122,7 +136,7 @@
                   <button
                     type="button"
                     class="py-1.5 px-3 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg border border-red-200 disabled:opacity-50 transition-colors"
-                    onclick={() => remove(p.slug)}
+                    onclick={() => askDelete(p)}
                     disabled={deleting === p.slug}
                     title="Eliminar esta página"
                   >
@@ -137,3 +151,31 @@
     </div>
   {/if}
 </div>
+
+{#if deleteSlug}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+    <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+      <h2 class="text-lg font-semibold text-slate-800">¿Eliminar esta página?</h2>
+      <p class="mt-2 text-sm text-slate-600">
+        Se eliminará <strong>{deleteTitle}</strong>. Esta acción no se puede deshacer.
+      </p>
+
+      <div class="mt-5 flex justify-end gap-2">
+        <button
+          type="button"
+          class="cms-btn-secondary"
+          onclick={() => { deleteSlug = null; deleteTitle = ''; }}
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          onclick={confirmDelete}
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
