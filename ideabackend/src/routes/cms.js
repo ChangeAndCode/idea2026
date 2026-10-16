@@ -351,6 +351,14 @@ router.put('/search-combo', requireCmsAuth, async (req, res, next) => {
   try { const body = req.body || {}; const db = await getDb(); const value = { labels: body.labels || {}, defaultText: String(body.defaultText || 'Seleccione una opción'), options: Array.isArray(body.options) ? body.options : [], updatedAt: new Date() }; await db.collection('searchCombos').updateOne({ _id: 'landing' }, { $set: value }, { upsert: true }); res.json(value); } catch (err) { next(err); }
 });
 
+router.get('/social-links', async (req, res, next) => {
+  try { const db = await getDb(); const doc = await db.collection('cms_social_links').findOne({ _id: 'footer' }); res.json(doc?.items ?? []); } catch (err) { next(err); }
+});
+
+router.put('/social-links', requireCmsAuth, async (req, res, next) => {
+  try { const items = Array.isArray(req.body?.items) ? req.body.items : []; const clean = items.map((item) => ({ label: String(item?.label ?? '').trim(), icon: String(item?.icon ?? '').trim(), url: String(item?.url ?? '').trim(), enabled: item?.enabled !== false })); if (clean.some((item) => !item.label || !item.icon || !isValidLink(item.url) || !/^https?:\/\//i.test(item.url))) return res.status(400).json({ error: 'Cada red debe tener nombre, icono y una URL http(s) válida.' }); const db = await getDb(); await db.collection('cms_social_links').updateOne({ _id: 'footer' }, { $set: { items: clean, updatedAt: new Date() } }, { upsert: true }); res.json(clean); } catch (err) { next(err); }
+});
+
 router.get('/pages', async (req, res, next) => {
   try {
     const db = await getDb();
