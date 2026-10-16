@@ -47,6 +47,9 @@ export async function getPages() {
   return r.json();
 }
 
+export async function getSearchComboConfig() { const r = await fetch(`${base}/search-combo`); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+export async function updateSearchComboConfig(data) { const r = await fetch(`${base}/search-combo`, { method: 'PUT', headers: await authHeaders(), body: JSON.stringify(data) }); if (!r.ok) throw new Error((await r.json()).error || await r.text()); return r.json(); }
+
 export async function getPage(slug) {
   const r = await fetch(`${base}/pages/${encodeURIComponent(slug)}`);
   if (!r.ok) throw new Error(await r.text());

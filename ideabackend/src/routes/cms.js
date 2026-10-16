@@ -343,6 +343,14 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
 });
 
 /** Lista páginas del CMS (desde MongoDB) */
+router.get('/search-combo', async (req, res, next) => {
+  try { const db = await getDb(); const doc = await db.collection('searchCombos').findOne({ _id: 'landing' }); res.json(doc ? { labels: doc.labels, defaultText: doc.defaultText, options: doc.options } : { labels: { combo1: '¿Quién eres?', combo2: '¿Qué buscas?', combo3: 'Respuestas disponibles' }, defaultText: 'Seleccione una opción', options: [] }); } catch (err) { next(err); }
+});
+
+router.put('/search-combo', requireCmsAuth, async (req, res, next) => {
+  try { const body = req.body || {}; const db = await getDb(); const value = { labels: body.labels || {}, defaultText: String(body.defaultText || 'Seleccione una opción'), options: Array.isArray(body.options) ? body.options : [], updatedAt: new Date() }; await db.collection('searchCombos').updateOne({ _id: 'landing' }, { $set: value }, { upsert: true }); res.json(value); } catch (err) { next(err); }
+});
+
 router.get('/pages', async (req, res, next) => {
   try {
     const db = await getDb();
