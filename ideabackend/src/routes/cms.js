@@ -136,6 +136,70 @@ function sanitizePageBody(html = '') {
   });
 }
 
+function normalizePageBlocks(blocks) {
+  if (!Array.isArray(blocks)) return undefined;
+
+  return blocks.map((block) => {
+    const type = String(block?.type ?? '').trim();
+    const id = String(block?.id ?? randomUUID()).trim() || randomUUID();
+
+    if (!['text', 'button', 'image', 'carousel'].includes(type)) {
+      throw Object.assign(new Error(`Tipo de bloque no válido: ${type || 'vacío'}`), { status: 400 });
+    }
+
+    if (type === 'text') {
+      return { id, type, content: sanitizePageBody(block?.content ?? '') };
+    }
+
+    if (type === 'button') {
+      const url = String(block?.url ?? '').trim();
+      const backgroundColor = String(block?.backgroundColor ?? '#FBBF24').trim();
+      const textColor = String(block?.textColor ?? '#0F2F7A').trim();
+      const textSize = String(block?.textSize ?? '16px').trim();
+      const align = String(block?.align ?? 'left').trim();
+      if (!String(block?.text ?? '').trim()) throw Object.assign(new Error('El botón debe tener texto'), { status: 400 });
+      if (!isValidLink(url)) throw Object.assign(new Error('La URL del botón no es válida'), { status: 400 });
+      if (!/^#[0-9a-f]{6}$/i.test(backgroundColor)) throw Object.assign(new Error('El color del botón no es válido'), { status: 400 });
+      if (!/^#[0-9a-f]{6}$/i.test(textColor)) throw Object.assign(new Error('El color del texto del botón no es válido'), { status: 400 });
+      if (!['10px', '12px', '14px', '16px', '18px', '20px', '24px', '0.875rem', '1rem', '1.125rem', '1.25rem'].includes(textSize)) throw Object.assign(new Error('El tamaño del texto del botón no es válido'), { status: 400 });
+      if (!['left', 'center', 'right'].includes(align)) throw Object.assign(new Error('La alineación del botón no es válida'), { status: 400 });
+      return { id, type, text: String(block.text).trim(), url, backgroundColor, textColor, textSize, align };
+    }
+
+    if (type === 'image') {
+      const link = String(block?.link ?? '').trim();
+      const align = String(block?.align ?? 'left').trim();
+      const width = String(block?.width ?? '500').trim();
+      const captionTextSize = String(block?.captionTextSize ?? '16px').trim();
+      if (!String(block?.src ?? '').trim()) throw Object.assign(new Error('El bloque de imagen debe tener una imagen'), { status: 400 });
+      if (!isValidLink(link)) throw Object.assign(new Error('La URL de la imagen no es válida'), { status: 400 });
+      if (!['left', 'center', 'right'].includes(align)) throw Object.assign(new Error('La alineación de la imagen no es válida'), { status: 400 });
+      if (!['200', '300', '400', '500', '600', '800'].includes(width)) throw Object.assign(new Error('El ancho de la imagen no es válido'), { status: 400 });
+      if (!['10px', '12px', '14px', '16px', '18px', '20px', '24px'].includes(captionTextSize)) throw Object.assign(new Error('El tamaño del texto descriptivo no es válido'), { status: 400 });
+      return { id, type, src: String(block.src).trim(), alt: String(block?.alt ?? '').trim(), link, align, width, caption: String(block?.caption ?? '').trim(), captionTextSize };
+    }
+
+    const slides = Array.isArray(block?.slides) ? block.slides : [];
+    return {
+      id,
+      type,
+      slides: slides.map((slide) => {
+        const link = String(slide?.link ?? '').trim();
+        if (!String(slide?.image ?? '').trim()) throw Object.assign(new Error('Cada slide debe tener una imagen'), { status: 400 });
+        if (!isValidLink(link)) throw Object.assign(new Error('La URL del slide no es válida'), { status: 400 });
+        return {
+          id: String(slide?.id ?? randomUUID()).trim() || randomUUID(),
+          image: String(slide.image).trim(),
+          alt: String(slide?.alt ?? '').trim(),
+          title: String(slide?.title ?? '').trim(),
+          subtitle: String(slide?.subtitle ?? '').trim(),
+          link,
+        };
+      }),
+    };
+  });
+}
+
 
 /** Subida de imagen para el CMS. Devuelve { path: '/uploads/<archivo>' } para guardar en MongoDB. */
 router.post('/upload', requireCmsAuth, (req, res) => {
@@ -386,7 +450,7 @@ router.get('/pages/:slug', async (req, res, next) => {
 /** Crea una página */
 router.post('/pages', requireCmsAuth, async (req, res, next) => {
   try {
-    const { slug, title, body, image, imageLink } = req.body || {};
+    const { slug, title, body, image, imageLink, blocks } = req.body || {};
     if (!isValidLink(imageLink)) return res.status(400).json({ error: 'La URL de la imagen no es válida' });
     if (!slug || !title) return res.status(400).json({ error: 'Faltan slug o title' });
     const db = await getDb();
@@ -395,6 +459,7 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
     if (existing) return res.status(409).json({ error: 'Ya existe una página con ese slug' });
     const now = new Date();
     const safeBody = sanitizePageBody(body ?? '');
+    const normalizedBlocks = normalizePageBlocks(blocks);
     const doc = {
       slug,
       title,
@@ -404,6 +469,7 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
       created_at: now,
       updated_at: now
     };
+    if (normalizedBlocks !== undefined) doc.blocks = normalizedBlocks;
     await col.insertOne(doc);
     const { _id, ...rest } = doc;
     res.status(201).json({ id: _id?.toString(), ...rest });
@@ -416,7 +482,7 @@ router.post('/pages', requireCmsAuth, async (req, res, next) => {
 router.put('/pages/:slug', requireCmsAuth, async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const { title, body, image, imageLink } = req.body || {};
+    const { title, body, image, imageLink, blocks } = req.body || {};
     if (imageLink !== undefined && !isValidLink(imageLink)) return res.status(400).json({ error: 'La URL de la imagen no es válida' });
     const db = await getDb();
     const col = db.collection('cms_pages');
@@ -425,6 +491,7 @@ router.put('/pages/:slug', requireCmsAuth, async (req, res, next) => {
     if (body !== undefined) update.body = sanitizePageBody(body);
     if (image !== undefined) update.image = image ?? '';
     if (imageLink !== undefined) update.imageLink = String(imageLink ?? '').trim();
+    if (blocks !== undefined) update.blocks = normalizePageBlocks(blocks);
     const r = await col.findOneAndUpdate(
       { slug },
       { $set: update },
