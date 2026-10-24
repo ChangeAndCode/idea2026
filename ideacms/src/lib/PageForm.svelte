@@ -13,6 +13,9 @@
   let blocks = $state([]);
   let expandedBlockId = $state(null);
   let showBlockModal = $state(false);
+  let blockInsertIndex = $state(0);
+  let expandedSlideId = $state(null);
+  let pendingDelete = $state(null);
   let slugInput = $state('');
   let loading = $state(true);
   let saving = $state(false);
@@ -44,7 +47,11 @@
       body = p.body ?? '';
       image = p.image ?? '';
       imageLink = p.imageLink ?? '';
-      blocks = Array.isArray(p.blocks) ? p.blocks : [];
+      const savedBlocks = Array.isArray(p.blocks) ? p.blocks : [];
+      blocks = savedBlocks.length || !body.trim()
+        ? savedBlocks
+        : [{ id: crypto.randomUUID(), type: 'text', content: body }];
+      if (blocks.length) expandedBlockId = blocks[0].id;
     } catch (e) {
       error = e.message;
     } finally {
@@ -64,7 +71,12 @@
     return { id, type, slides: [] };
   }
 
-  function addBlock(type, index = blocks.length) {
+  function openBlockModal(index = blocks.length) {
+    blockInsertIndex = index;
+    showBlockModal = true;
+  }
+
+  function addBlock(type, index = blockInsertIndex) {
     const block = createBlock(type);
     blocks = [...blocks.slice(0, index), block, ...blocks.slice(index)];
     expandedBlockId = block.id;
@@ -74,6 +86,25 @@
   function removeBlock(id) {
     blocks = blocks.filter((block) => block.id !== id);
     if (expandedBlockId === id) expandedBlockId = null;
+  }
+
+  function askDeleteBlock(block) {
+    pendingDelete = { kind: 'block', id: block.id, label: blockLabel(block) };
+  }
+
+  function askDeleteSlide(block, slide) {
+    pendingDelete = { kind: 'slide', blockId: block.id, id: slide.id, label: slide.title || 'este slide' };
+  }
+
+  function confirmDelete() {
+    if (!pendingDelete) return;
+    if (pendingDelete.kind === 'block') {
+      removeBlock(pendingDelete.id);
+    } else {
+      const block = blocks.find((item) => item.id === pendingDelete.blockId);
+      if (block) removeSlide(block, pendingDelete.id);
+    }
+    pendingDelete = null;
   }
 
   function moveBlock(index, direction) {
@@ -99,15 +130,26 @@
     return `${Array.isArray(block.slides) ? block.slides.length : 0} slide(s)`;
   }
 
-  function addSlide(block) {
-    block.slides = [
-      ...(Array.isArray(block.slides) ? block.slides : []),
-      { id: crypto.randomUUID(), image: '', alt: '', title: '', subtitle: '', link: '' }
-    ];
+  function addSlide(block, index = block.slides?.length ?? 0) {
+    const newSlide = { id: crypto.randomUUID(), image: '', alt: '', title: '', subtitle: '', link: '' };
+    const currentSlides = Array.isArray(block.slides) ? block.slides : [];
+    const slides = [...currentSlides.slice(0, index), newSlide, ...currentSlides.slice(index)];
+    blocks = blocks.map((item) => item.id === block.id ? { ...item, slides } : item);
+    expandedSlideId = newSlide.id;
   }
 
   function removeSlide(block, slideId) {
-    block.slides = (block.slides ?? []).filter((slide) => slide.id !== slideId);
+    const slides = (block.slides ?? []).filter((slide) => slide.id !== slideId);
+    if (expandedSlideId === slideId) expandedSlideId = null;
+    blocks = blocks.map((item) => item.id === block.id ? { ...item, slides } : item);
+  }
+
+  function moveSlide(block, index, direction) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= block.slides.length) return;
+    const slides = [...block.slides];
+    [slides[index], slides[nextIndex]] = [slides[nextIndex], slides[index]];
+    blocks = blocks.map((item) => item.id === block.id ? { ...item, slides } : item);
   }
 
   async function submit() {
@@ -257,10 +299,7 @@
               Contenido de la página
             </p>
           </div>
-          <div class="flex items-center justify-between gap-3">
-            <label class="cms-label mb-0">Contenido de la página</label>
-            <button type="button" class="cms-btn-secondary !py-2" onclick={() => (showBlockModal = true)}>+ Agregar elemento</button>
-          </div>
+          <button type="button" class="cms-btn-secondary w-full !py-2" onclick={() => openBlockModal(0)}>+ Agregar elemento</button>
 
           {#if blocks.length === 0}
             <div class="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">
@@ -279,7 +318,7 @@
                     <div class="flex shrink-0 items-center gap-1">
                       <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-idea-dark disabled:opacity-30" aria-label="Subir bloque" title="Subir bloque" disabled={index === 0} onclick={(event) => { event.stopPropagation(); moveBlock(index, -1); }}>↑</button>
                       <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-idea-dark disabled:opacity-30" aria-label="Bajar bloque" title="Bajar bloque" disabled={index === blocks.length - 1} onclick={(event) => { event.stopPropagation(); moveBlock(index, 1); }}>↓</button>
-                      <button type="button" class="rounded p-1.5 text-red-600 hover:bg-red-50 disabled:opacity-30" aria-label="Eliminar bloque" title="Eliminar bloque" onclick={(event) => { event.stopPropagation(); removeBlock(block.id); }}>🗑</button>
+                      <button type="button" class="rounded p-1.5 text-red-600 hover:bg-red-50 disabled:opacity-30" aria-label="Eliminar bloque" title="Eliminar bloque" onclick={(event) => { event.stopPropagation(); askDeleteBlock(block); }}>🗑</button>
                     </div>
                   </div>
 
@@ -389,14 +428,20 @@
                           <button type="button" class="cms-btn-secondary !py-2" onclick={() => addSlide(block)}>+ Agregar slide</button>
                         </div>
                         {#if block.slides?.length}
-                          <div class="space-y-4">
+                          <div class={`space-y-4 ${block.slides.length >= 4 ? 'max-h-[32rem] overflow-y-auto pr-2' : ''}`}>
                             {#each block.slides as slide, slideIndex (slide.id)}
-                              <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                                <div class="mb-3 flex items-center justify-between gap-3">
-                                  <strong class="text-sm text-slate-700">Slide {slideIndex + 1}</strong>
-                                  <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-white text-lg leading-none text-red-600 hover:bg-red-50" aria-label="Eliminar slide" title="Eliminar slide" onclick={() => removeSlide(block, slide.id)}>×</button>
+                              <div class="rounded-lg border border-slate-200 bg-slate-50">
+                                <div class="flex items-center gap-2 p-4">
+                                  <button type="button" class="flex min-w-0 flex-1 items-center justify-between text-left" onclick={() => (expandedSlideId = expandedSlideId === slide.id ? null : slide.id)}>
+                                    <span class="min-w-0 truncate font-semibold text-slate-700">Slide {slideIndex + 1}: {slide.title || 'Sin título'}</span>
+                                    <span class="text-slate-500">{expandedSlideId === slide.id ? '⌃' : '⌄'}</span>
+                                  </button>
+                                  <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-white disabled:opacity-30" aria-label="Subir slide" title="Subir slide" disabled={slideIndex === 0} onclick={() => moveSlide(block, slideIndex, -1)}>↑</button>
+                                  <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-white disabled:opacity-30" aria-label="Bajar slide" title="Bajar slide" disabled={slideIndex === block.slides.length - 1} onclick={() => moveSlide(block, slideIndex, 1)}>↓</button>
+                                  <button type="button" class="flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-white text-lg leading-none text-red-600 hover:bg-red-50" aria-label="Eliminar slide" title="Eliminar slide" onclick={() => askDeleteSlide(block, slide)}>×</button>
                                 </div>
-                                <div class="space-y-4">
+                                {#if expandedSlideId === slide.id}
+                                <div class="space-y-4 border-t border-slate-200 p-4">
                                   <ImageUploadField
                                     id={`slide-image-${slide.id}`}
                                     label="Imagen del slide"
@@ -422,7 +467,15 @@
                                     <input id={`slide-link-${slide.id}`} class="cms-input" type="text" bind:value={slide.link} placeholder="https://ejemplo.com o /pagina/ejemplo" />
                                   </div>
                                 </div>
+                                {/if}
                               </div>
+                              {#if slideIndex < block.slides.length - 1}
+                                <div class="flex items-center gap-2 py-0">
+                                  <div class="h-px flex-1 bg-slate-200"></div>
+                                  <button type="button" class="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-sm text-slate-600 shadow-sm hover:border-idea-dark hover:text-idea-dark" aria-label="Agregar slide entre slides" title="Agregar slide aquí" onclick={() => addSlide(block, slideIndex + 1)}>+</button>
+                                  <div class="h-px flex-1 bg-slate-200"></div>
+                                </div>
+                              {/if}
                             {/each}
                           </div>
                         {:else}
@@ -434,8 +487,15 @@
                     </div>
                   {/if}
                 </div>
-                <button type="button" class="w-full rounded-lg border border-dashed border-slate-300 py-2 text-sm text-slate-500 hover:border-idea-dark hover:text-idea-dark" onclick={() => (showBlockModal = true)}>+ Agregar elemento aquí</button>
+                {#if index < blocks.length - 1}
+                  <div class="flex items-center gap-2 py-0">
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                    <button type="button" class="flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-sm text-slate-600 shadow-sm hover:border-idea-dark hover:text-idea-dark" aria-label="Agregar elemento entre bloques" title="Agregar elemento aquí" onclick={() => openBlockModal(index + 1)}>+</button>
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                  </div>
+                {/if}
               {/each}
+              <button type="button" class="cms-btn-secondary w-full !py-2" onclick={() => openBlockModal(blocks.length)}>+ Agregar elemento</button>
             </div>
           {/if}
 
@@ -467,6 +527,19 @@
         {#each [['text', 'Texto'], ['button', 'Botón'], ['image', 'Imagen'], ['carousel', 'Carrusel']] as option}
           <button type="button" class="rounded-lg border border-slate-200 p-4 text-left font-medium text-slate-700 hover:border-idea-dark hover:bg-slate-50" onclick={() => addBlock(option[0])}>{option[1]}</button>
         {/each}
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if pendingDelete}
+  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" role="presentation">
+    <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+      <h3 id="delete-modal-title" class="text-lg font-semibold text-slate-800">Confirmar eliminación</h3>
+      <p class="mt-2 text-sm text-slate-600">¿Seguro que deseas eliminar {pendingDelete.kind === 'block' ? `el bloque de ${pendingDelete.label}` : pendingDelete.label}?</p>
+      <div class="mt-6 flex justify-end gap-2">
+        <button type="button" class="cms-btn-secondary" onclick={() => (pendingDelete = null)}>Cancelar</button>
+        <button type="button" class="rounded-lg bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700" onclick={confirmDelete}>Eliminar</button>
       </div>
     </div>
   </div>
