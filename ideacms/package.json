@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "Mini CMS IDEA 2026 - gestión de contenidos",
     "type": "module",
+    "engines": {
+        "node": ">=22.23.4 <23"
+    },
     "dependencies": {
         "@tiptap/core": "^3.27.3",
         "@tiptap/extension-highlight": "^3.27.3",

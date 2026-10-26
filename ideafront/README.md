@@ -4,7 +4,7 @@ Frontend IDEA 2026 — Svelte + Vite + Tailwind.
 
 ## Requisitos
 
-- Node.js >= 18
+- Node.js >= 22.23.4 < 23
 
 ## Instalación
 
