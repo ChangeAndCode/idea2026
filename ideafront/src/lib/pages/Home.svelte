@@ -329,16 +329,18 @@
 
 <!-- Logos: grandes, ocupan casi todo el ancho (desde CMS) -->
 <section class="bg-white py-16 sm:py-20">
-  <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-12 gap-y-8 px-4 md:gap-x-16 md:px-6">
+  <div class="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-8 px-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:px-6">
     {#each heroLogos as logo}
       {#if logo.src}
-        {#if logo.link}
-          <a href={logo.link} class="flex flex-1 min-w-0 justify-center" aria-label={logo.alt || 'Abrir enlace'}>
-            <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-32 w-auto max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
-          </a>
-        {:else}
-          <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-32 w-auto flex-1 min-w-0 max-w-[280px] object-contain sm:h-36 sm:max-w-[320px] md:h-40 md:max-w-[360px]" />
-        {/if}
+        <div class="flex min-w-0 items-center justify-center">
+          {#if logo.link}
+            <a href={logo.link} class="flex min-w-0 w-full items-center justify-center" aria-label={logo.alt || 'Abrir enlace'}>
+              <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-auto max-h-32 w-auto max-w-full object-contain sm:max-h-36 md:max-h-40" />
+            </a>
+          {:else}
+            <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-auto max-h-32 w-auto max-w-full object-contain sm:max-h-36 md:max-h-40" />
+          {/if}
+        </div>
       {/if}
     {/each}
   </div>
