@@ -8,6 +8,38 @@
   }
 
   let carouselIndex = 1;
+  let touchStartX = 0;
+  let touchDeltaX = 0;
+  let isDragging = false;
+
+  function nextCarousel() {
+    carouselIndex = (carouselIndex + 1) % carouselSlides.length;
+  }
+
+  function previousCarousel() {
+    carouselIndex = (carouselIndex - 1 + carouselSlides.length) % carouselSlides.length;
+  }
+
+  function onTouchStart(event) {
+    touchStartX = event.touches[0]?.clientX ?? 0;
+    touchDeltaX = 0;
+    isDragging = true;
+  }
+
+  function onTouchMove(event) {
+    touchDeltaX = (event.touches[0]?.clientX ?? touchStartX) - touchStartX;
+  }
+
+  function onTouchEnd(event) {
+    const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+    const distance = touchEndX - touchStartX;
+    if (Math.abs(distance) >= 40) {
+      if (distance < 0) nextCarousel();
+      else previousCarousel();
+    }
+    touchDeltaX = 0;
+    isDragging = false;
+  }
 
   /** Landing: valores por defecto (si la API falla o no devuelve landing). */
   const defaultLanding = {
@@ -59,14 +91,6 @@
     if (configured) return configured;
     const query = [location?.name, location?.address, 'Chihuahua, Chihuahua'].filter(Boolean).join(', ');
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-  }
-
-  function handleDesktopImageClick(event, index) {
-    if (index !== carouselIndex) {
-      event.preventDefault();
-      event.stopPropagation();
-      carouselIndex = index;
-    }
   }
 
   onMount(async () => {
@@ -174,7 +198,7 @@
               <select
                 id="dropdown-quien-m"
                 bind:value={selectedQuien}
-                on:change={onQuienChangeMobile}
+                onchange={onQuienChangeMobile}
                 disabled={searchComboLoading}
                 class="search-select w-full rounded-md border-0 bg-white px-3 py-2.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-idea-bright/40 disabled:!bg-white disabled:opacity-70"
               >
@@ -190,7 +214,7 @@
               <select
                 id="dropdown-que-m"
                 bind:value={selectedQueBuscas}
-                on:change={onQueBuscasChangeMobile}
+                onchange={onQueBuscasChangeMobile}
                 disabled={searchComboLoading || !selectedQuien}
                 class="search-select w-full rounded-md border-0 bg-white px-3 py-2.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-idea-bright/40 disabled:!bg-white disabled:opacity-70"
               >
@@ -199,7 +223,7 @@
                   <option value={m.ComboBoxMatchElementText}>{m.ComboBoxMatchElementText}</option>
                 {/each}
               </select>
-              <button type="button" on:click={searchStepPrev} class="mt-3 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border border-white/40 bg-white/10 py-2.5 text-sm font-medium text-white active:bg-white/20">← Atrás</button>
+              <button type="button" onclick={searchStepPrev} class="mt-3 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-lg border border-white/40 bg-white/10 py-2.5 text-sm font-medium text-white active:bg-white/20">← Atrás</button>
             </div>
           {:else}
             <div class="space-y-3">
@@ -216,8 +240,8 @@
                 {/each}
               </select>
               <div class="mt-3 flex gap-2">
-                <button type="button" on:click={searchStepPrev} class="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/40 bg-white/10 py-2.5 text-sm font-medium text-white active:bg-white/20">← Atrás</button>
-                <button type="button" on:click={goToSelected} disabled={!selectedRespuesta} class="flex min-h-[44px] flex-1 items-center justify-center rounded-md bg-idea-bright py-2.5 text-sm font-medium text-white disabled:opacity-50">Ir</button>
+                <button type="button" onclick={searchStepPrev} class="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/40 bg-white/10 py-2.5 text-sm font-medium text-white active:bg-white/20">← Atrás</button>
+                <button type="button" onclick={goToSelected} disabled={!selectedRespuesta} class="flex min-h-[44px] flex-1 items-center justify-center rounded-md bg-idea-bright py-2.5 text-sm font-medium text-white disabled:opacity-50">Ir</button>
               </div>
             </div>
           {/if}
@@ -230,7 +254,7 @@
             <select
               id="dropdown-quien"
               bind:value={selectedQuien}
-              on:change={onQuienChange}
+              onchange={onQuienChange}
               disabled={searchComboLoading}
               class="search-select w-full min-w-0 rounded-md border-0 bg-white px-2 py-1.5 text-sm text-slate-600 focus:outline-none focus:ring-1 focus:ring-idea-bright/40 disabled:!bg-white disabled:!text-slate-500 disabled:opacity-80"
             >
@@ -245,7 +269,7 @@
             <select
               id="dropdown-que"
               bind:value={selectedQueBuscas}
-              on:change={onQueBuscasChange}
+              onchange={onQueBuscasChange}
               disabled={searchComboLoading || !selectedQuien}
               class="search-select w-full min-w-0 rounded-md border-0 bg-white px-2 py-1.5 text-sm text-slate-600 focus:outline-none focus:ring-1 focus:ring-idea-bright/40 disabled:!bg-white disabled:!text-slate-500 disabled:opacity-80"
             >
@@ -271,7 +295,7 @@
           </div>
           <button
             type="button"
-            on:click={goToSelected}
+            onclick={goToSelected}
             class="flex h-8 min-w-[5rem] shrink-0 items-center justify-center self-end rounded-md bg-idea-bright px-4 py-1.5 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!selectedRespuesta}
           >
@@ -305,7 +329,7 @@
     <div class="flex justify-center pt-2 md:pt-12">
       <a
         href="/bolsa"
-        on:click|preventDefault={() => go('/bolsa')}
+        onclick={(event) => { event.preventDefault(); go('/bolsa'); }}
         class="relative z-20 inline-block rounded-xl bg-idea-bright px-10 py-4 text-base font-semibold uppercase tracking-wide text-white shadow-lg transition hover:scale-105 hover:bg-[#0066CC] sm:px-12 sm:py-4 sm:text-lg -mb-1 md:-mb-10"
       >
         {heroCtaText}
@@ -353,77 +377,85 @@
   </h2>
 </section>
 
-<!-- Carrusel: en móvil una tarjeta a la vez; en desktop las 3 con centro grande -->
+<!-- Tarjetas de contenido: una por fila en todos los tamaños -->
 <section class="bg-white px-4 pb-16 pt-2 sm:px-5 md:px-6">
   <div class="mx-auto max-w-7xl">
-    <!-- Móvil: una tarjeta a la vez, deslizante -->
     <div class="overflow-hidden py-6 md:hidden">
-      <div class="flex transition-transform duration-300 ease-out" style="width: {carouselSlides.length * 100}%; transform: translateX(-{carouselIndex * (100 / carouselSlides.length)}%);">
-        {#each carouselSlides as slide, i}
-          <div
-            role="button"
-            tabindex="0"
-            class="group flex flex-shrink-0 cursor-pointer rounded-2xl bg-transparent p-0 text-left outline-none focus:ring-2 focus:ring-idea-bright focus:ring-offset-2"
-            style="width: {100 / carouselSlides.length}%"
-            on:click={() => (carouselIndex = i)}
-            on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); carouselIndex = i; } }}
-          >
-            {#if slide.type === 'info'}
-              <div class="mx-1 flex min-h-[280px] flex-col justify-center rounded-2xl bg-gradient-to-br from-idea-navy to-idea-dark p-6 text-white shadow-md">
-                <p class="text-center text-base">{slide.text}</p>
-                {#if slide.ctaLink}<a href={slide.ctaLink} target={slide.ctaTarget ?? '_self'} rel={slide.ctaTarget === '_blank' ? 'noopener noreferrer' : undefined} class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md transition hover:opacity-90" on:click|stopPropagation>{slide.cta ?? 'Descubre más'}</a>{:else}<button type="button" class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md transition hover:opacity-90" on:click|preventDefault|stopPropagation>{slide.cta ?? 'Descubre más'}</button>{/if}
-                <p class="mt-3 text-center text-xs text-white/80">{slide.sub}</p>
-              </div>
+      <div
+        class="flex touch-pan-y {isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'}"
+        style={`transform: translateX(calc(-${carouselIndex * 100}% + ${touchDeltaX}px));`}
+        ontouchstart={onTouchStart}
+        ontouchmove={onTouchMove}
+        ontouchend={onTouchEnd}
+      >
+      {#each carouselSlides as slide, i}
+        <div class="w-full flex-shrink-0 px-1">
+        {#if slide.type === 'info'}
+          <div class="animate-card-in flex min-h-[280px] w-full flex-col justify-center rounded-2xl bg-gradient-to-br from-idea-navy to-idea-dark p-6 text-white shadow-md">
+            <p class="text-center text-base">{slide.text}</p>
+            {#if slide.ctaLink}
+              <a href={slide.ctaLink} target={slide.ctaTarget ?? '_self'} rel={slide.ctaTarget === '_blank' ? 'noopener noreferrer' : undefined} class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md transition hover:opacity-90">{slide.cta ?? 'Descubre más'}</a>
             {:else}
-              <div class="relative mx-1 min-h-[280px] overflow-hidden rounded-2xl bg-idea-navy shadow-md">
-                <div class="absolute inset-0 flex items-center justify-center p-2">
-                  {#if slide.link}
-                    <a href={slide.link} class="relative z-10 flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'} on:click|stopPropagation>
-                      <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
-                    </a>
-                  {:else}
-                    <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
-                  {/if}
-                </div>
-                <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 p-4 text-center text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <p class="font-bold text-idea-yellow">{slide.title}</p>
-                  <p class="mt-2 text-sm opacity-95">{slide.subtitle}</p>
-                </div>
-              </div>
+              <button type="button" class="mt-4 inline-block rounded-xl bg-white px-6 py-3 text-center font-semibold text-idea-navy shadow-md">{slide.cta ?? 'Descubre más'}</button>
             {/if}
+            <p class="mt-3 text-center text-xs text-white/80">{slide.sub}</p>
           </div>
-        {/each}
+        {:else}
+          <div class="animate-card-in relative flex min-h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl bg-idea-navy shadow-md">
+            {#if slide.link}
+              <a href={slide.link} class="flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'}>
+                <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[280px] object-contain" />
+              </a>
+            {:else}
+              <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[280px] object-contain" />
+            {/if}
+            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 p-4 text-center text-white opacity-0 transition-opacity duration-300 hover:opacity-100">
+              <p class="font-bold text-idea-yellow">{slide.title}</p>
+              <p class="mt-2 text-sm opacity-95">{slide.subtitle}</p>
+            </div>
+          </div>
+        {/if}
+        </div>
+      {/each}
       </div>
+      {#if carouselSlides.length > 1}
+        <div class="mt-4 flex justify-center gap-2">
+          {#each carouselSlides as _, i}
+            <button type="button" class="h-2 w-8 rounded-full {i === carouselIndex ? 'bg-idea-navy' : 'bg-slate-300'}" aria-label="Tarjeta {i + 1}" onclick={() => (carouselIndex = i)}></button>
+          {/each}
+        </div>
+      {/if}
     </div>
 
-    <!-- Desktop: tres tarjetas, la central más grande -->
     <div class="hidden items-end gap-4 py-6 md:flex md:gap-6 lg:gap-8">
       {#each carouselSlides as slide, i}
         <div
           role="button"
           tabindex="0"
           class="group flex min-w-0 cursor-pointer rounded-2xl bg-transparent p-0 text-left outline-none transition-all duration-500 focus:ring-2 focus:ring-idea-bright focus:ring-offset-2 {i === carouselIndex ? 'z-10 flex-[2]' : 'flex-1'}"
-          on:mouseenter={() => (carouselIndex = i)}
-          on:click={() => (carouselIndex = i)}
-          on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); carouselIndex = i; } }}
+          onmouseenter={() => (carouselIndex = i)}
+          onclick={() => (carouselIndex = i)}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); carouselIndex = i; } }}
         >
           {#if slide.type === 'info'}
             <div class="flex w-full flex-col justify-center rounded-2xl p-4 shadow-md {i === carouselIndex ? 'min-h-[380px] bg-gradient-to-br from-idea-navy to-idea-dark text-white shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px] md:p-8' : 'min-h-[260px] bg-slate-100 text-slate-700 md:p-5'}">
               <p class="text-center {i === carouselIndex ? 'text-base md:text-lg' : 'text-sm'}">{slide.text}</p>
-              {#if slide.ctaLink}<a href={slide.ctaLink} target={slide.ctaTarget ?? '_self'} rel={slide.ctaTarget === '_blank' ? 'noopener noreferrer' : undefined} class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" on:click|stopPropagation>{slide.cta ?? 'Descubre más'}</a>{:else}<button type="button" class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" on:click|preventDefault|stopPropagation>{slide.cta ?? 'Descubre más'}</button>{/if}
+              {#if slide.ctaLink}
+                <a href={slide.ctaLink} target={slide.ctaTarget ?? '_self'} rel={slide.ctaTarget === '_blank' ? 'noopener noreferrer' : undefined} class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">{slide.cta ?? 'Descubre más'}</a>
+              {:else}
+                <button type="button" class="mt-4 inline-block rounded-xl px-6 py-3 text-center font-semibold shadow-md transition md:mt-6 {i === carouselIndex ? 'bg-white text-idea-navy hover:bg-idea-light hover:shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">{slide.cta ?? 'Descubre más'}</button>
+              {/if}
               <p class="mt-3 text-center text-xs md:text-sm {i === carouselIndex ? 'text-white/80' : 'text-slate-500'}">{slide.sub}</p>
             </div>
           {:else}
-            <div class="relative w-full overflow-hidden rounded-2xl shadow-md {i === carouselIndex ? 'min-h-[380px] bg-idea-navy shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px]' : 'min-h-[260px] bg-slate-100'}">
-              <div class="absolute inset-0 flex items-center justify-center">
-                {#if slide.link}
-                  <a href={slide.link} class="relative z-10 flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'} on:click={(event) => handleDesktopImageClick(event, i)}>
-                    <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
-                  </a>
-                {:else}
-                  <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="max-h-full max-w-full object-contain" />
-                {/if}
-              </div>
+            <div class="relative flex w-full items-center justify-center overflow-hidden rounded-2xl shadow-md {i === carouselIndex ? 'min-h-[380px] bg-idea-navy shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px]' : 'min-h-[260px] bg-slate-100'}">
+              {#if slide.link}
+                <a href={slide.link} class="flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'}>
+                  <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[420px] object-contain" />
+                </a>
+              {:else}
+                <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[420px] object-contain" />
+              {/if}
               <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-4 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 {i === carouselIndex ? 'bg-black/55 text-white' : 'bg-black/40 text-white'}">
                 <p class="font-bold {i === carouselIndex ? 'text-idea-yellow text-lg' : 'text-white text-base'}">{slide.title}</p>
                 <p class="mt-2 text-sm opacity-95">{slide.subtitle}</p>
@@ -434,18 +466,30 @@
       {/each}
     </div>
 
-    <div class="mt-8 flex justify-center gap-2">
+    <div class="mt-8 hidden justify-center gap-2 md:flex">
       {#each carouselSlides as _, i}
-        <button
-          type="button"
-          class="h-2 w-8 rounded-full transition {i === carouselIndex ? 'bg-idea-navy' : 'bg-slate-300'}"
-          aria-label="Slide {i + 1}"
-          on:click={() => (carouselIndex = i)}
-        ></button>
+        <button type="button" class="h-2 w-8 rounded-full transition {i === carouselIndex ? 'bg-idea-navy' : 'bg-slate-300'}" aria-label="Slide {i + 1}" onclick={() => (carouselIndex = i)}></button>
       {/each}
     </div>
   </div>
 </section>
+
+<style>
+  :global(.animate-card-in) {
+    animation: card-in 240ms ease-out;
+  }
+
+  @keyframes card-in {
+    from {
+      opacity: 0.35;
+      transform: translateX(18px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+</style>
 
 <!-- La ciudad habla -->
 <section class="bg-white px-4 py-12">
