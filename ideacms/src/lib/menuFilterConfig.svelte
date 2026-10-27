@@ -21,6 +21,7 @@
   let message = $state('');
   let error = $state('');
   let deleteRequest = $state(null);
+  let dragging = $state(null);
 
   $effect(() => {
     if (!message && !error) return;
@@ -99,6 +100,42 @@
         : item,
     );
     options = [...options];
+  }
+
+  function startDrag(type, index) {
+    dragging = { type, index };
+  }
+
+  function reorder(type, targetIndex) {
+    if (!dragging || dragging.type !== type || dragging.index === targetIndex) {
+      dragging = null;
+      return;
+    }
+
+    if (type === 'user') {
+      const selected = options[selectedUser];
+      const next = [...options];
+      const [moved] = next.splice(dragging.index, 1);
+      next.splice(targetIndex, 0, moved);
+      options = next;
+      selectedUser = Math.max(0, options.indexOf(selected));
+    } else if (type === 'match' && user) {
+      const selected = user.ComboBoxUserMatches?.[selectedMatch];
+      const next = [...(user.ComboBoxUserMatches || [])];
+      const [moved] = next.splice(dragging.index, 1);
+      next.splice(targetIndex, 0, moved);
+      user.ComboBoxUserMatches = next;
+      options = [...options];
+      selectedMatch = Math.max(0, next.indexOf(selected));
+    } else if (type === 'answer' && match) {
+      const next = [...(match.ComboBoxMatchElementUrl || [])];
+      const [moved] = next.splice(dragging.index, 1);
+      next.splice(targetIndex, 0, moved);
+      match.ComboBoxMatchElementUrl = next;
+      options = [...options];
+    }
+
+    dragging = null;
   }
 
   function removeUser(index) {
@@ -264,7 +301,8 @@
         </div>
 
         {#each options as item, i}
-          <div class="mt-2 flex items-center gap-2">
+          <div class="mt-2 flex cursor-grab items-center gap-2 active:cursor-grabbing" draggable="true" ondragstart={() => startDrag('user', i)} ondragover={(event) => event.preventDefault()} ondrop={() => reorder('user', i)}>
+            <span class="select-none text-slate-400" title="Arrastrar para reordenar" aria-hidden="true">⋮⋮</span>
             <input
               class="cms-input flex-1 {selectedUser === i ? 'border-idea-blue ring-2 ring-idea-blue/20' : ''}"
               value={item.ComboBoxUserName}
@@ -301,7 +339,8 @@
         </div>
 
         {#each user?.ComboBoxUserMatches || [] as item, i}
-          <div class="mt-2 flex items-center gap-2">
+          <div class="mt-2 flex cursor-grab items-center gap-2 active:cursor-grabbing" draggable="true" ondragstart={() => startDrag('match', i)} ondragover={(event) => event.preventDefault()} ondrop={() => reorder('match', i)}>
+            <span class="select-none text-slate-400" title="Arrastrar para reordenar" aria-hidden="true">⋮⋮</span>
             <input
               class="cms-input flex-1 {selectedMatch === i ? 'border-idea-blue ring-2 ring-idea-blue/20' : ''}"
               value={item.ComboBoxMatchElementText}
@@ -326,7 +365,7 @@
         <div class="flex justify-between">
           <h3>{labels.combo3}</h3>
           <button
-            class="cms-btn-secondary"
+            class="cms-btn-secondary !px-3 !py-2 text-sm whitespace-nowrap"
             onclick={addAnswer}
             disabled={!match}
           >
@@ -335,7 +374,8 @@
         </div>
 
         {#each match?.ComboBoxMatchElementUrl || [] as item, i}
-          <div class="mt-3 flex items-center gap-2">
+          <div class="mt-3 flex cursor-grab items-center gap-2 active:cursor-grabbing" draggable="true" ondragstart={() => startDrag('answer', i)} ondragover={(event) => event.preventDefault()} ondrop={() => reorder('answer', i)}>
+            <span class="select-none text-slate-400" title="Arrastrar para reordenar" aria-hidden="true">⋮⋮</span>
             <select
               class="cms-input flex-1"
               value={item.ComboBoxThirdUrl}
