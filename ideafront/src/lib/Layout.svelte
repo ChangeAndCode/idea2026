@@ -69,8 +69,8 @@
 
 <header class="relative z-30 bg-idea-dark text-white">
   <div class="flex justify-center items-center">
-    <nav class="flex w-10/12 items-center justify-between px-4 py-4 sm:px-6">
-      <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+    <nav class="flex w-full max-w-7xl min-w-0 items-center justify-between px-4 py-4 sm:px-6">
+      <div class="flex min-w-0 shrink items-center gap-2 sm:gap-4">
         {#if logoMunicipioLink}<a href={logoMunicipioLink}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{:else}<a href="/" onclick={(e) => { e.preventDefault(); go('/'); }}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{/if}
         {#if logoIdeaLink}<a href={logoIdeaLink}><img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" /></a>{:else}<img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />{/if}
         <div class="sm:hidden">
@@ -81,12 +81,12 @@
       </div>
 
       <!-- Escritorio: enlaces visibles -->
-      <ul class="hidden items-center gap-4 md:flex md:gap-6">
+      <ul class="hidden min-w-0 items-center justify-end gap-3 xl:flex xl:gap-5">
         {#each navItems as item}
           <li>
             <a
               href={item.path}
-              class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
+              class="inline-flex items-center text-center text-sm font-normal uppercase leading-tight tracking-wide text-white transition hover:opacity-90"
               onclick={(e) => { e.preventDefault(); go(item.path); }}
             >
               {item.label}
@@ -96,7 +96,7 @@
         <li>
           <a
             href="/bolsa"
-            class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
+            class="inline-flex items-center text-center text-sm font-normal uppercase leading-tight tracking-wide text-white transition hover:opacity-90"
             onclick={(e) => { e.preventDefault(); go('/bolsa'); }}
           >
             Bolsa
@@ -118,7 +118,7 @@
       <!-- Móvil: botón hamburguesa -->
       <button
         type="button"
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 md:hidden"
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 xl:hidden"
         aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
         aria-expanded={menuOpen}
         onclick={toggleMenu}
@@ -138,7 +138,7 @@
 
   <!-- Móvil: menú desplegable -->
   <div
-    class="absolute left-0 right-0 top-full z-50 bg-idea-dark shadow-lg transition md:hidden {menuOpen ? 'block' : 'hidden'}"
+    class="absolute left-0 right-0 top-full z-50 bg-idea-dark shadow-lg transition xl:hidden {menuOpen ? 'block' : 'hidden'}"
     role="dialog"
     aria-label="Menú de navegación"
   >
