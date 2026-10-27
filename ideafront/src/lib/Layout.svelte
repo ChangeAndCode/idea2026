@@ -29,6 +29,28 @@
   let logoIdeaLink = $state('');
   let logoChihuahuaLink = $state('');
   let socialLinks = $state([]);
+  let searchOptions = $state([]);
+
+  function normalize(value) {
+    return String(value ?? '').trim().toLowerCase();
+  }
+
+  function submenuFor(item) {
+    const label = normalize(item.label);
+    return (searchOptions[0]?.ComboBoxUserMatches ?? [])
+      .filter((match) => normalize(match.ComboBoxMatchElementText) === label);
+  }
+
+  function headerItems() {
+    const firstFilter = searchOptions[0];
+    const matches = firstFilter?.ComboBoxUserMatches ?? [];
+    if (matches.length === 0) return navItems;
+
+    return matches.map((match) => ({
+      label: match.ComboBoxMatchElementText,
+      path: match.ComboBoxMatchElementUrl?.[0]?.ComboBoxThirdUrl || '#',
+    }));
+  }
 
   onMount(async () => {
     try {
@@ -50,6 +72,11 @@
       logoMunicipioLink = data.logoMunicipioLink ?? '';
       logoIdeaLink = data.logoIdeaLink ?? '';
       logoChihuahuaLink = data.logoChihuahuaLink ?? '';
+      const searchRes = await fetch(apiUrl('/api/cms/search-combo'));
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        searchOptions = Array.isArray(searchData.options) ? searchData.options : [];
+      }
       const socialRes = await fetch(apiUrl('/api/cms/social-links'));
       if (socialRes.ok) socialLinks = (await socialRes.json()).filter((item) => item.enabled !== false && item.url);
     } catch (_) {
@@ -82,8 +109,10 @@
 
       <!-- Escritorio: enlaces visibles -->
       <ul class="hidden min-w-0 items-center justify-end gap-3 xl:flex xl:gap-5">
-        {#each navItems as item}
-          <li>
+        {#each headerItems() as item, itemIndex}
+          {@const submenu = submenuFor(item)}
+          {@const openSubmenuLeft = itemIndex >= headerItems().length - 2}
+          <li class="group relative">
             <a
               href={item.path}
               class="inline-flex items-center text-center text-sm font-normal uppercase leading-tight tracking-wide text-white transition hover:opacity-90"
@@ -91,6 +120,30 @@
             >
               {item.label}
             </a>
+            {#if submenu.length > 0}
+              <div class="invisible absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-3 opacity-0 transition group-hover:visible group-hover:opacity-100">
+                <div class="bg-idea-navy shadow-xl">
+                  {#each submenu as second}
+                    <div class="group/sub relative">
+                      <a href={second.ComboBoxMatchElementUrl?.[0]?.ComboBoxThirdUrl || item.path} class="block px-5 py-4 text-sm uppercase text-white hover:bg-idea-dark" onclick={(e) => { e.preventDefault(); go(second.ComboBoxMatchElementUrl?.[0]?.ComboBoxThirdUrl || item.path); }}>
+                        {second.ComboBoxMatchElementText}
+                      </a>
+                      {#if Array.isArray(second.ComboBoxMatchElementUrl) && second.ComboBoxMatchElementUrl.length > 0}
+                        <div class="invisible absolute top-0 w-72 opacity-0 transition group-hover/sub:visible group-hover/sub:opacity-100 {openSubmenuLeft ? 'right-full' : 'left-full'}">
+                          <div class="bg-idea-navy shadow-xl">
+                            {#each second.ComboBoxMatchElementUrl as third}
+                              <a href={third.ComboBoxThirdUrl} class="block px-5 py-4 text-sm text-white hover:bg-idea-dark" onclick={(e) => { e.preventDefault(); go(third.ComboBoxThirdUrl); }}>
+                                {third.ComboBoxThirdText}
+                              </a>
+                            {/each}
+                          </div>
+                        </div>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
           </li>
         {/each}
         <li>
@@ -143,7 +196,8 @@
     aria-label="Menú de navegación"
   >
     <ul class="flex flex-col border-t border-white/10 px-4 py-4">
-      {#each navItems as item}
+      {#each headerItems() as item}
+        {@const submenu = submenuFor(item)}
         <li>
           <a
             href={item.path}
@@ -152,6 +206,20 @@
           >
             {item.label}
           </a>
+          {#if submenu.length > 0}
+            <div class="ml-4 border-l border-white/20 pl-3">
+              {#each submenu as second}
+                <div>
+                  <span class="block py-2 text-xs uppercase tracking-wide text-white/60">{second.ComboBoxMatchElementText}</span>
+                  {#each second.ComboBoxMatchElementUrl ?? [] as third}
+                    <a href={third.ComboBoxThirdUrl} class="block py-2 text-sm text-white/90" onclick={(e) => { e.preventDefault(); go(third.ComboBoxThirdUrl); }}>
+                      {third.ComboBoxThirdText}
+                    </a>
+                  {/each}
+                </div>
+              {/each}
+            </div>
+          {/if}
         </li>
       {/each}
       <li>
