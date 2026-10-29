@@ -54,6 +54,38 @@
     }
   });
 
+  /** Submenús de la barra. Solo páginas que ya existen en el CMS. */
+  const emprendimientoMenu = [
+    { label: 'Incubadoras', path: '/pagina/incubadoras' },
+    { label: 'Propiedad intelectual', path: '/pagina/propiedad-intelectual' },
+    { label: 'Permisos y licencias', path: '/pagina/permisos-y-licencias' },
+    { label: 'Branding', path: '/pagina/branding' },
+  ];
+  const capacitacionMenu = [
+    { label: 'ENCES', path: '/pagina/ences' },
+    { label: 'Mifam', path: '/pagina/mifam' },
+  ];
+  const apoyosMenu = [
+    { label: 'Proyectos productivos', path: '/pagina/proyectos-productivos' },
+    { label: 'FOMECH', path: '/pagina/fomech' },
+    { label: 'Impulso municipal', path: '/pagina/impulso-municipal' },
+  ];
+  const sectorIndustrialMenu = [
+    { label: 'Desarrollo de proveedores', path: '/pagina/desarrollo-de-proveedores' },
+    { label: 'Clúster', path: '/pagina/cluster' },
+    { label: 'Atracción de inversión', path: '/pagina/atraccion-de-inversion' },
+  ];
+
+  function submenuFor(item) {
+    const label = String(item?.label || '').toLowerCase();
+    const path = String(item?.path || '').toLowerCase();
+    if (label.includes('emprendimiento') || path.includes('/pagina/emprendimiento')) return emprendimientoMenu;
+    if (label.includes('capacit') || path.includes('/pagina/capacitacion')) return capacitacionMenu;
+    if (label.includes('apoyo') || path.includes('/pagina/apoyos')) return apoyosMenu;
+    if (label.includes('sector') || path.includes('/pagina/sector-industrial')) return sectorIndustrialMenu;
+    return null;
+  }
+
   function go(path) {
     page.goto(path);
     menuOpen = false;
@@ -80,14 +112,37 @@
       <!-- Escritorio: enlaces visibles -->
       <ul class="hidden items-center gap-4 md:flex md:gap-6">
         {#each navItems as item}
-          <li>
-            <a
-              href={item.path}
-              class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
-              onclick={(e) => { e.preventDefault(); go(item.path); }}
-            >
-              {item.label}
-            </a>
+          <li class="relative group">
+            {#if submenuFor(item)}
+              <button
+                type="button"
+                class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
+                aria-haspopup="true"
+              >
+                {item.label}
+              </button>
+              <ul class="absolute left-0 top-full z-50 hidden min-w-[16rem] bg-idea-navy py-2 shadow-lg group-hover:block group-focus-within:block">
+                {#each submenuFor(item) as child}
+                  <li>
+                    <a
+                      href={child.path}
+                      class="block px-4 py-2 text-sm uppercase tracking-wide text-white transition hover:bg-white/10"
+                      onclick={(e) => { e.preventDefault(); go(child.path); }}
+                    >
+                      {child.label}
+                    </a>
+                  </li>
+                {/each}
+              </ul>
+            {:else}
+              <a
+                href={item.path}
+                class="text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
+                onclick={(e) => { e.preventDefault(); go(item.path); }}
+              >
+                {item.label}
+              </a>
+            {/if}
           </li>
         {/each}
         <li>
@@ -142,13 +197,30 @@
     <ul class="flex flex-col border-t border-white/10 px-4 py-4">
       {#each navItems as item}
         <li>
-          <a
-            href={item.path}
-            class="block py-3 text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
-            onclick={(e) => { e.preventDefault(); go(item.path); }}
-          >
-            {item.label}
-          </a>
+          {#if submenuFor(item)}
+            <p class="pt-3 text-sm font-normal uppercase tracking-wide text-white">{item.label}</p>
+            <ul class="pb-2">
+              {#each submenuFor(item) as child}
+                <li>
+                  <a
+                    href={child.path}
+                    class="block py-2 pl-3 text-sm uppercase tracking-wide text-white/90 transition hover:text-white"
+                    onclick={(e) => { e.preventDefault(); go(child.path); }}
+                  >
+                    {child.label}
+                  </a>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <a
+              href={item.path}
+              class="block py-3 text-sm font-normal uppercase tracking-wide text-white transition hover:opacity-90"
+              onclick={(e) => { e.preventDefault(); go(item.path); }}
+            >
+              {item.label}
+            </a>
+          {/if}
         </li>
       {/each}
       <li>

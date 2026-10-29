@@ -8,16 +8,47 @@
   let imageLink = '';
   let loading = true;
   let notFound = false;
+  let sectionTitle = '';
+  let sectionLinks = [];
+
+  /** Secciones del menú que no tienen página propia. Solo enlaza slugs que ya existen en el CMS. */
+  const sectionPages = {
+    capacitacion: { title: 'Capacitación', slugs: ['ences', 'mifam'] },
+    'ferias-y-eventos': { title: 'Ferias y eventos', slugs: [] },
+    'sector-industrial': { title: 'Sector industrial', slugs: [] },
+    'apoyos-y-financiamientos': {
+      title: 'Apoyos y financiamientos',
+      slugs: ['fomech', 'impulso-municipal', 'proyectos-productivos'],
+    },
+  };
+
+  /** Ruta pública anidada o alias → slug que ya existe en el CMS, sin modificar esos datos. */
+  function lookupSlugs(raw) {
+    const slug = decodeURIComponent(String(raw || '')).replace(/^\/+|\/+$/g, '');
+    const candidates = [];
+    const add = (value) => {
+      if (value && !candidates.includes(value)) candidates.push(value);
+    };
+    add(slug);
+    add(slug.toLowerCase());
+    const last = slug.split('/').filter(Boolean).pop();
+    add(last);
+    add(last ? last.toLowerCase() : '');
+    if (slug === 'vende-tu-proyecto' || last === 'vende-tu-proyecto') add('proyectos-productivos');
+    return candidates;
+  }
 
   async function load(s) {
     if (!s) return;
     loading = true;
     notFound = false;
+    sectionTitle = '';
+    sectionLinks = [];
 
-    // 1) Intentar siempre primero el CMS (cms_pages)
-    try {
-      const res = await fetch(apiUrl(`/api/cms/pages/${encodeURIComponent(s)}`));
-      if (res.ok) {
+    for (const candidate of lookupSlugs(s)) {
+      try {
+        const res = await fetch(apiUrl(`/api/cms/pages/${encodeURIComponent(candidate)}`));
+        if (!res.ok) continue;
         const data = await res.json();
         title = data.title || '';
         body = data.body || '';
@@ -25,12 +56,31 @@
         imageLink = data.imageLink || '';
         loading = false;
         return;
+      } catch (_) {
+        /* probar el siguiente candidato */
       }
-    } catch (e) {
-      // si falla la llamada, probamos con estático
     }
 
-    // 2) Si no existe en CMS, marcar como no encontrada
+    const key = decodeURIComponent(String(s || '')).replace(/^\/+|\/+$/g, '').toLowerCase();
+    const section = sectionPages[key];
+    if (section) {
+      let pages = [];
+      try {
+        const res = await fetch(apiUrl('/api/cms/pages'));
+        if (res.ok) pages = await res.json();
+      } catch (_) {
+        pages = [];
+      }
+      const bySlug = new Map((Array.isArray(pages) ? pages : []).map((page) => [page.slug, page]));
+      sectionTitle = section.title;
+      sectionLinks = section.slugs
+        .filter((item) => bySlug.has(item))
+        .map((item) => ({ slug: item, title: bySlug.get(item).title || item }));
+      notFound = false;
+      loading = false;
+      return;
+    }
+
     notFound = true;
     loading = false;
   }
@@ -43,6 +93,23 @@
 {#if loading}
   <section class="min-h-[50vh] flex items-center justify-center bg-white py-16">
     <p class="text-slate-600">Cargando...</p>
+  </section>
+{:else if sectionLinks.length > 0 || sectionTitle}
+  <section class="bg-white py-12 sm:py-16 px-8 sm:px-10 min-h-[calc(100vh-12rem)]">
+    <div class="w-full rounded-2xl bg-idea-dark px-10 py-12 sm:px-14 sm:py-16 shadow-xl text-white">
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-tight">{sectionTitle}</h1>
+      {#if sectionLinks.length > 0}
+        <ul class="mt-8 space-y-3">
+          {#each sectionLinks as item}
+            <li>
+              <a href={`/pagina/${item.slug}`} class="text-lg underline underline-offset-2 hover:text-idea-yellow">{item.title}</a>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="mt-8 text-white/80">Aún no hay páginas publicadas en esta sección.</p>
+      {/if}
+    </div>
   </section>
 {:else if notFound}
   <section class="min-h-[50vh] flex items-center justify-center bg-white py-16">
