@@ -383,6 +383,8 @@
     <div class="overflow-hidden py-6 md:hidden">
       <div
         class="flex touch-pan-y {isDragging ? 'transition-none' : 'transition-transform duration-300 ease-out'}"
+        role="group"
+        aria-label="Carrusel de inicio"
         style={`transform: translateX(calc(-${carouselIndex * 100}% + ${touchDeltaX}px));`}
         ontouchstart={onTouchStart}
         ontouchmove={onTouchMove}
