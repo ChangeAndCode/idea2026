@@ -137,7 +137,7 @@
                   {@const slides = block.slides ?? []}
                   {@const slide = slides[currentSlideIndex(block)]}
                   {#if slide}
-                    <div class="relative touch-pan-y rounded-lg bg-white p-4 text-idea-dark" on:touchstart={onCarouselTouchStart} on:touchend={(event) => onCarouselTouchEnd(event, block)}>
+                    <div class="relative touch-pan-y rounded-lg bg-white p-4 text-idea-dark" role="group" aria-label="Carrusel de contenido" on:touchstart={onCarouselTouchStart} on:touchend={(event) => onCarouselTouchEnd(event, block)}>
                       {#if imageSrc(slide.image)}
                         {#if slide.link}<a href={slide.link}><img src={imageSrc(slide.image)} alt={slide.alt || ''} class="mx-auto max-h-[28rem] w-full object-contain" /></a>{:else}<img src={imageSrc(slide.image)} alt={slide.alt || ''} class="mx-auto max-h-[28rem] w-full object-contain" />{/if}
                       {/if}
