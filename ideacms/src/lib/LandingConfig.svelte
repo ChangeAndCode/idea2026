@@ -22,9 +22,9 @@
     ],
     ciudadHablaTitle: 'La ciudad habla.\n¿Ya la escuchaste?',
     ciudadHablaCards: [
-      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
-      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: false },
-      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true },
+      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', buttonLink: '', imageOnLeft: true },
+      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', buttonLink: '', imageOnLeft: false },
+      { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', buttonLink: '', imageOnLeft: true },
     ],
     buscasAtencionTitle: '¿Buscas atención?\nAquí nos encuentras',
     locations: [{ name: '', address: '', mapsUrl: '', mapImage: '' }],
@@ -78,7 +78,7 @@
           headlineText: L.headlineText ?? DEFAULT_LANDING.headlineText,
           carouselSlides: Array.isArray(L.carouselSlides) && L.carouselSlides.length ? L.carouselSlides.map((s) => ({ ...s, link: s.link ?? '', ctaLink: s.ctaLink ?? '', ctaTarget: s.ctaTarget === '_blank' ? '_blank' : '_self', type: s.type === 'info' ? 'info' : 'image' })) : DEFAULT_LANDING.carouselSlides,
           ciudadHablaTitle: L.ciudadHablaTitle ?? DEFAULT_LANDING.ciudadHablaTitle,
-          ciudadHablaCards: Array.isArray(L.ciudadHablaCards) && L.ciudadHablaCards.length ? L.ciudadHablaCards.map((c) => ({ ...DEFAULT_LANDING.ciudadHablaCards[0], ...c, imageLink: c.imageLink ?? '', imageOnLeft: c.imageOnLeft !== false })) : DEFAULT_LANDING.ciudadHablaCards,
+          ciudadHablaCards: Array.isArray(L.ciudadHablaCards) && L.ciudadHablaCards.length ? L.ciudadHablaCards.map((c) => ({ ...DEFAULT_LANDING.ciudadHablaCards[0], ...c, imageLink: c.imageLink ?? '', buttonLink: c.buttonLink ?? '', imageOnLeft: c.imageOnLeft !== false })) : DEFAULT_LANDING.ciudadHablaCards,
           buscasAtencionTitle: L.buscasAtencionTitle ?? DEFAULT_LANDING.buscasAtencionTitle,
           locations: Array.isArray(L.locations) && L.locations.length ? L.locations.map((l) => ({ name: l.name ?? '', address: l.address ?? '', mapsUrl: l.mapsUrl ?? '', mapImage: l.mapImage ?? '' })) : DEFAULT_LANDING.locations,
         };
@@ -125,6 +125,7 @@
       ...(landing.carouselSlides ?? []).map((x) => x.link),
       ...(landing.carouselSlides ?? []).map((x) => x.ctaLink),
       ...(landing.ciudadHablaCards ?? []).map((x) => x.imageLink),
+      ...(landing.ciudadHablaCards ?? []).map((x) => x.buttonLink),
     ];
     if (links.some((link) => !isValidLink(link))) {
       error = 'Revisa los campos Enlace / URL. Usa una URL http(s) o una ruta interna como /pagina/ejemplo.';
@@ -191,7 +192,7 @@
   }
   function addCard() {
     const cards = landing.ciudadHablaCards ?? [];
-    landing = { ...landing, ciudadHablaCards: [...cards, { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', imageOnLeft: true }] };
+    landing = { ...landing, ciudadHablaCards: [...cards, { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', buttonLink: '', imageOnLeft: true }] };
   }
   function removeCard(i) {
     const cards = landing.ciudadHablaCards ?? [];
@@ -527,6 +528,7 @@
               />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Alt de la imagen" value={card.imgAlt} oninput={(e) => setCard(i, 'imgAlt', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace / URL de la imagen (opcional)" value={card.imageLink ?? ''} oninput={(e) => setCard(i, 'imageLink', e.target.value)} />
+              <input type="text" class="cms-input !py-2 text-sm" placeholder="Enlace / URL del botón (opcional)" value={card.buttonLink ?? ''} oninput={(e) => setCard(i, 'buttonLink', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Texto del botón" value={card.buttonText} oninput={(e) => setCard(i, 'buttonText', e.target.value)} />
               <label class="flex items-center gap-2 text-sm text-slate-600">
                 <input type="checkbox" checked={card.imageOnLeft} onchange={(e) => setCard(i, 'imageOnLeft', e.target.checked)} />

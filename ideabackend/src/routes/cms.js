@@ -30,6 +30,7 @@ function assertValidLandingLinks(landing) {
     ...(Array.isArray(landing?.carouselSlides) ? landing.carouselSlides.map((x) => x?.link) : []),
     ...(Array.isArray(landing?.carouselSlides) ? landing.carouselSlides.map((x) => x?.ctaLink) : []),
     ...(Array.isArray(landing?.ciudadHablaCards) ? landing.ciudadHablaCards.map((x) => x?.imageLink) : []),
+    ...(Array.isArray(landing?.ciudadHablaCards) ? landing.ciudadHablaCards.map((x) => x?.buttonLink) : []),
     ...(Array.isArray(landing?.locations) ? landing.locations.map((x) => x?.mapsUrl) : []),
   ];
   const invalid = links.find((link) => !isValidLink(link));
@@ -299,6 +300,7 @@ function normalizeLanding(landing) {
         img: String(c?.img ?? '').trim(),
         imgAlt: String(c?.imgAlt ?? '').trim(),
         imageLink: String(c?.imageLink ?? '').trim(),
+        buttonLink: String(c?.buttonLink ?? '').trim(),
         buttonText: String(c?.buttonText ?? 'Leer más').trim(),
         imageOnLeft: Boolean(c?.imageOnLeft),
       }))

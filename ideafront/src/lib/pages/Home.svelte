@@ -511,13 +511,13 @@
           <div class="order-2 flex flex-col justify-center p-6 md:p-8">
             <h3 class="text-xl font-bold uppercase tracking-wide text-idea-navy">{card.title}</h3>
             <p class="mt-4 text-slate-600">{card.text}</p>
-            <button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>
+            {#if card.buttonLink}<a href={card.buttonLink} class="mt-6 block w-full rounded-xl bg-idea-bright px-6 py-3 text-center font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</a>{:else}<button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>{/if}
           </div>
         {:else}
           <div class="order-2 flex flex-col justify-center p-6 md:order-1 md:p-8">
             <h3 class="text-xl font-bold uppercase tracking-wide text-idea-navy">{card.title}</h3>
             <p class="mt-4 text-slate-600">{card.text}</p>
-            <button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>
+            {#if card.buttonLink}<a href={card.buttonLink} class="mt-6 block w-full rounded-xl bg-idea-bright px-6 py-3 text-center font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</a>{:else}<button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>{/if}
           </div>
           <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:order-2 md:min-h-[280px] md:rounded-l-none md:rounded-r-2xl md:rounded-tl-none">
             {#if card.imageLink}
