@@ -335,13 +335,27 @@ function normalizeLanding(landing) {
 }
 
 /** GET configuración del sitio (navegación, logos, landing). Si no existe, devuelve valores por defecto. */
+function normalizeNavItems(items) {
+  if (!Array.isArray(items)) return DEFAULT_SITE_CONFIG.navItems;
+  return items.map((item) => ({
+    label: String(item?.label ?? '').trim() || 'Sin título',
+    path: String(item?.path ?? '').trim() || '#',
+    children: Array.isArray(item?.children)
+      ? item.children.map((child) => ({
+          label: String(child?.label ?? '').trim() || 'Sin título',
+          path: String(child?.path ?? '').trim() || '#',
+        }))
+      : [],
+  }));
+}
+
 router.get('/site', async (req, res, next) => {
   try {
     const db = await getDb();
     const doc = await db.collection('cms_site_config').findOne({ _id: SITE_CONFIG_ID });
     const payload = doc
       ? {
-          navItems: Array.isArray(doc.navItems) ? doc.navItems : DEFAULT_SITE_CONFIG.navItems,
+          navItems: normalizeNavItems(doc.navItems),
           logoMunicipio: doc.logoMunicipio ?? DEFAULT_SITE_CONFIG.logoMunicipio,
           logoIdea: doc.logoIdea ?? DEFAULT_SITE_CONFIG.logoIdea,
           logoChihuahua: doc.logoChihuahua ?? DEFAULT_SITE_CONFIG.logoChihuahua,
@@ -369,6 +383,12 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
       update.navItems = navItems.map((item) => ({
         label: String(item?.label ?? '').trim() || 'Sin título',
         path: String(item?.path ?? '').trim() || '#',
+        children: Array.isArray(item?.children)
+          ? item.children.map((child) => ({
+              label: String(child?.label ?? '').trim() || 'Sin título',
+              path: String(child?.path ?? '').trim() || '#',
+            }))
+          : [],
       }));
     }
     if (body.logoMunicipio !== undefined) update.logoMunicipio = String(body.logoMunicipio).trim();
@@ -391,7 +411,7 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
     );
     const doc = r ?? (await col.findOne({ _id: SITE_CONFIG_ID }));
     const payload = {
-      navItems: Array.isArray(doc?.navItems) ? doc.navItems : DEFAULT_SITE_CONFIG.navItems,
+      navItems: normalizeNavItems(doc?.navItems),
       logoMunicipio: doc?.logoMunicipio ?? DEFAULT_SITE_CONFIG.logoMunicipio,
       logoIdea: doc?.logoIdea ?? DEFAULT_SITE_CONFIG.logoIdea,
       logoChihuahua: doc?.logoChihuahua ?? DEFAULT_SITE_CONFIG.logoChihuahua,

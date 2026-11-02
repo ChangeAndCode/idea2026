@@ -9,7 +9,6 @@
 
   let menuOpen = $state(false);
   let openNavItem = $state(null);
-  let openSubmenu = $state(null);
 
   /** Valores por defecto: se usan si la API falla o no devuelve datos. */
   const defaultNavItems = [
@@ -31,27 +30,13 @@
   let logoIdeaLink = $state('');
   let logoChihuahuaLink = $state('');
   let socialLinks = $state([]);
-  let searchOptions = $state([]);
-
-  function normalize(value) {
-    return String(value ?? '').trim().toLowerCase();
-  }
 
   function submenuFor(item) {
-    const label = normalize(item.label);
-    return (searchOptions[0]?.ComboBoxUserMatches ?? [])
-      .filter((match) => normalize(match.ComboBoxMatchElementText) === label);
+    return Array.isArray(item?.children) ? item.children : [];
   }
 
   function headerItems() {
-    const firstFilter = searchOptions[0];
-    const matches = firstFilter?.ComboBoxUserMatches ?? [];
-    if (matches.length === 0) return navItems;
-
-    return matches.map((match) => ({
-      label: match.ComboBoxMatchElementText,
-      path: match.ComboBoxMatchElementUrl?.[0]?.ComboBoxThirdUrl || '#',
-    }));
+    return navItems.filter((item) => item?.label?.trim() && item?.path?.trim());
   }
 
   onMount(async () => {
@@ -74,11 +59,6 @@
       logoMunicipioLink = data.logoMunicipioLink ?? '';
       logoIdeaLink = data.logoIdeaLink ?? '';
       logoChihuahuaLink = data.logoChihuahuaLink ?? '';
-      const searchRes = await fetch(apiUrl('/api/cms/search-combo'));
-      if (searchRes.ok) {
-        const searchData = await searchRes.json();
-        searchOptions = Array.isArray(searchData.options) ? searchData.options : [];
-      }
       const socialRes = await fetch(apiUrl('/api/cms/social-links'));
       if (socialRes.ok) socialLinks = (await socialRes.json()).filter((item) => item.enabled !== false && item.url);
     } catch (_) {
@@ -95,23 +75,18 @@
     menuOpen = !menuOpen;
     if (!menuOpen) {
       openNavItem = null;
-      openSubmenu = null;
     }
   }
 
   function toggleNavItem(index) {
     openNavItem = openNavItem === index ? null : index;
-    openSubmenu = null;
   }
 
-  function toggleSubmenu(key) {
-    openSubmenu = openSubmenu === key ? null : key;
-  }
 </script>
 
 <header class="relative z-30 bg-idea-dark text-white">
   <div class="flex justify-center items-center">
-    <nav class="flex w-full max-w-7xl min-w-0 items-center justify-between px-2 py-4 sm:px-4">
+    <nav class="flex w-full max-w-[1600px] min-w-0 items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
       <div class="flex min-w-0 shrink items-center gap-1 sm:gap-2">
         {#if logoMunicipioLink}<a href={logoMunicipioLink}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{:else}<a href="/" onclick={(e) => { e.preventDefault(); go('/'); }}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{/if}
         {#if logoIdeaLink}<a href={logoIdeaLink}><img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" /></a>{:else}<img src={mediaUrl(logoIdea)} alt="IDEA" class="hidden h-9 w-auto max-w-[100px] object-contain sm:block sm:h-10 sm:max-w-[120px]" />{/if}
@@ -123,14 +98,13 @@
       </div>
 
       <!-- Escritorio: enlaces visibles -->
-      <ul class="hidden min-w-0 items-center justify-end gap-2 xl:flex xl:gap-2">
+      <ul class="desktop-nav min-w-0 shrink-0 items-center justify-end gap-1 2xl:gap-2">
         {#each headerItems() as item, itemIndex}
           {@const submenu = submenuFor(item)}
-          {@const openSubmenuLeft = itemIndex >= headerItems().length - 2}
-          <li class="group relative">
+          <li class="group relative shrink-0">
             <a
               href={item.path}
-              class="inline-flex max-w-[150px] items-center whitespace-normal rounded-md px-2 py-2 text-center text-sm font-normal uppercase leading-tight tracking-wide text-white transition hover:bg-white/10"
+              class="inline-flex max-w-[145px] items-center whitespace-normal rounded-md px-1.5 py-2 text-center text-xs font-normal uppercase leading-tight tracking-wide text-white transition hover:bg-white/10 2xl:px-2 2xl:text-sm"
               onclick={(e) => { e.preventDefault(); go(item.path); }}
             >
               {item.label}
@@ -140,20 +114,9 @@
                 <div class="bg-idea-navy shadow-xl">
                   {#each submenu as second}
                     <div class="group/sub relative">
-                      <a href={second.ComboBoxMatchElementUrl?.[0]?.ComboBoxThirdUrl || item.path} class="block px-5 py-4 text-sm uppercase text-white hover:bg-idea-dark" onclick={(e) => { e.preventDefault(); go(second.ComboBoxMatchElementUrl?.[0]?.ComboBoxThirdUrl || item.path); }}>
-                        {second.ComboBoxMatchElementText}
+                      <a href={second.path || item.path} class="block px-5 py-4 text-sm uppercase text-white hover:bg-idea-dark" onclick={(e) => { e.preventDefault(); go(second.path || item.path); }}>
+                        {second.label}
                       </a>
-                      {#if Array.isArray(second.ComboBoxMatchElementUrl) && second.ComboBoxMatchElementUrl.length > 0}
-                        <div class="invisible absolute top-0 w-72 opacity-0 transition group-hover/sub:visible group-hover/sub:opacity-100 {openSubmenuLeft ? 'right-full' : 'left-full'}">
-                          <div class="bg-idea-navy shadow-xl">
-                            {#each second.ComboBoxMatchElementUrl as third}
-                              <a href={third.ComboBoxThirdUrl} class="block px-5 py-4 text-sm text-white hover:bg-idea-dark" onclick={(e) => { e.preventDefault(); go(third.ComboBoxThirdUrl); }}>
-                                {third.ComboBoxThirdText}
-                              </a>
-                            {/each}
-                          </div>
-                        </div>
-                      {/if}
                     </div>
                   {/each}
                 </div>
@@ -161,10 +124,10 @@
             {/if}
           </li>
         {/each}
-        <li>
+        <li class="ml-2 shrink-0 2xl:ml-4">
           <a
             href="/bolsa"
-            class="inline-flex max-w-[150px] items-center whitespace-normal rounded-md px-2 py-2 text-center text-sm font-normal uppercase leading-tight tracking-wide text-white transition hover:bg-white/10"
+            class="inline-flex max-w-[90px] items-center whitespace-normal rounded-md px-2 py-2 text-center text-xs font-normal uppercase leading-tight tracking-wide text-white transition hover:bg-white/10 2xl:text-sm"
             onclick={(e) => { e.preventDefault(); go('/bolsa'); }}
           >
             Bolsa
@@ -186,7 +149,7 @@
       <!-- Móvil: botón hamburguesa -->
       <button
         type="button"
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 xl:hidden"
+        class="mobile-nav-toggle flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10"
         aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
         aria-expanded={menuOpen}
         onclick={toggleMenu}
@@ -206,7 +169,7 @@
 
   <!-- Móvil: menú desplegable -->
   <div
-    class="absolute left-0 right-0 top-full z-50 bg-idea-dark shadow-lg transition xl:hidden {menuOpen ? 'block' : 'hidden'}"
+    class="mobile-nav-panel absolute left-0 right-0 top-full z-50 bg-idea-dark shadow-lg transition {menuOpen ? 'block' : 'hidden'}"
     role="dialog"
     aria-label="Menú de navegación"
   >
@@ -227,21 +190,10 @@
           {#if submenu.length > 0}
             {#if openNavItem === itemIndex}
               <div class="ml-4 border-l border-white/20 pl-3">
-                {#each submenu as second, secondIndex}
-                  {@const submenuKey = `${itemIndex}-${secondIndex}`}
-                  <button type="button" class="flex w-full items-center justify-between rounded-md py-2 px-2 text-left text-sm uppercase text-white/80 transition hover:bg-black/15" aria-expanded={openSubmenu === submenuKey} onclick={() => toggleSubmenu(submenuKey)}>
-                    <span>{second.ComboBoxMatchElementText}</span>
-                    <span aria-hidden="true">{openSubmenu === submenuKey ? '−' : '+'}</span>
-                  </button>
-                  {#if openSubmenu === submenuKey}
-                    <div class="ml-3 border-l border-white/10 pl-3">
-                      {#each second.ComboBoxMatchElementUrl ?? [] as third}
-                        <a href={third.ComboBoxThirdUrl} class="block rounded-md py-2 px-2 text-sm text-white/90 transition hover:bg-black/15" onclick={(e) => { e.preventDefault(); go(third.ComboBoxThirdUrl); }}>
-                          {third.ComboBoxThirdText}
-                        </a>
-                      {/each}
-                    </div>
-                  {/if}
+                {#each submenu as second}
+                  <a href={second.path || item.path} class="block rounded-md py-2 px-2 text-sm uppercase text-white/90 transition hover:bg-black/15" onclick={(e) => { e.preventDefault(); go(second.path || item.path); }}>
+                    {second.label}
+                  </a>
                 {/each}
               </div>
             {/if}
@@ -280,6 +232,38 @@
     <p class="p-8 text-center text-slate-500">Página no encontrada</p>
   {/if}
 </main>
+
+<style>
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .mobile-nav-toggle {
+    display: flex !important;
+  }
+
+  .mobile-nav-panel {
+    display: none;
+  }
+
+  .mobile-nav-panel.block {
+    display: block !important;
+  }
+
+  @media (min-width: 1536px) {
+    .desktop-nav {
+      display: flex !important;
+    }
+
+    .mobile-nav-toggle {
+      display: none !important;
+    }
+
+    .mobile-nav-panel {
+      display: none !important;
+    }
+  }
+</style>
 
 <footer class="bg-idea-navy py-12 text-white">
   <div class="mx-auto max-w-7xl px-4 text-center">
