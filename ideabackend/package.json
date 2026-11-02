@@ -14,6 +14,7 @@
     "seed:search-combo": "node scripts/seed-search-combo.js",
     "seed:cms-pages": "node scripts/seed-cms-pages.js",
     "migrate:chambabot-options": "node scripts/migrate-chambabot-options.js",
+    "migrate:header-submenus": "node scripts/migrate-header-submenus.js",
     "create-cms-user": "node scripts/create-cms-user.js"
   },
   "dependencies": {
