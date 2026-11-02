@@ -11,6 +11,8 @@
   import { TextStyleKit } from '@tiptap/extension-text-style';
   import {Image} from '@tiptap/extension-image';
   import { uploadImage } from './api.js';
+  import UrlModal from './UrlModal.svelte';
+  import NoticeModal from './NoticeModal.svelte';
   
   const AlignedImage = Image.extend({
     addAttributes() {
@@ -48,6 +50,7 @@
   let editorState = $state({ editor: null, version: 0 });
   let inlineImageInput = $state();
   let inlineImageUploading = $state(false);
+  let urlModal = $state({ open: false, mode: '', value: '', error: '', from: null, to: null });
 
   function cleanPastedInlineStyle(styleText = '') {
     const allowedProperties = new Set([
@@ -300,14 +303,10 @@ function isTextAlignActive(alignment) {
 }
 
 function setLink() {
-  const previousUrl = editorState.editor?.getAttributes('link').href ?? '';
-  const url = window.prompt('URL del enlace', previousUrl);
-  if (url === null) return;
-  if (url.trim() === '') {
-    editorState.editor?.chain().focus().extendMarkRange('link').unsetLink().run();
-    return;
-  }
-  editorState.editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  const editor = editorState.editor;
+  const previousUrl = editor?.getAttributes('link').href ?? '';
+  const selection = editor?.state.selection;
+  urlModal = { open: true, mode: 'text', value: previousUrl, error: '', from: selection?.from ?? null, to: selection?.to ?? null };
 }
 
 function insertTable() {
@@ -380,8 +379,8 @@ function setImageLink() {
   if (!editor || !editor.isActive('image')) return;
 
   const current = editor.getAttributes('image').link ?? '';
-  const value = window.prompt('Enlace / URL de la imagen (opcional)', current);
-  if (value === null) return;
+  urlModal = { open: true, mode: 'image', value: current, error: '', from: editor.state.selection.from, to: editor.state.selection.to };
+  return;
 
   const link = value.trim();
   if (link && !link.startsWith('/') && !/^https?:\/\//i.test(link)) {
@@ -390,7 +389,29 @@ function setImageLink() {
   }
 
   editor.chain().focus().updateAttributes('image', { link }).run();
+  console.debug('[RichTextEditor] HTML después de asignar enlace a imagen:', editor.getHTML());
 }
+
+function closeUrlModal() { urlModal = { ...urlModal, open: false, error: '' }; }
+
+function saveUrlModal(value) {
+  const link = String(value ?? '').trim();
+  if (link && !link.startsWith('/') && !/^https?:\/\//i.test(link)) {
+    urlModal = { ...urlModal, error: 'La URL debe comenzar con http://, https:// o / para una ruta interna.' };
+    return;
+  }
+  const editor = editorState.editor;
+  if (urlModal.mode === 'image' && urlModal.from != null) {
+    editor?.chain().focus().setNodeSelection(urlModal.from).updateAttributes('image', { link }).run();
+  } else if (urlModal.from != null && urlModal.to != null) {
+    const chain = editor?.chain().focus().setTextSelection({ from: urlModal.from, to: urlModal.to });
+    if (!link) chain?.extendMarkRange('link').unsetLink().run();
+    else chain?.extendMarkRange('link').setLink({ href: link }).run();
+  }
+  closeUrlModal();
+}
+
+function removeUrlModal() { saveUrlModal(''); }
 
 function setFontSize(value) {
   const editor = editorState.editor;
@@ -455,7 +476,7 @@ async function onInlineImageSelected(event) {
       })
       .run();
   } catch (err) {
-    alert(err instanceof Error ? err.message : 'Error al subir la imagen');
+    urlModal = { open: true, mode: 'error', value: '', error: err instanceof Error ? err.message : 'Error al subir la imagen' };
   } finally {
     inlineImageUploading = false;
     event.currentTarget.value = '';
@@ -934,7 +955,7 @@ async function onInlineImageSelected(event) {
         type="button"
         aria-label="Insertar imagen"
         title="Insertar imagen"
-        class="cms-btn-secondary !py-1.0 !px-2.5 text-sm w-10 h-10"
+         class="hidden cms-btn-secondary !py-1.0 !px-2.5 text-sm w-10 h-10"
         onclick={openInlineImagePicker}
         disabled={inlineImageUploading}
       >
@@ -963,7 +984,7 @@ async function onInlineImageSelected(event) {
         type="button"
         aria-label="Enlace de imagen"
         title="Enlace de imagen"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
+         class="hidden cms-btn-secondary !py-1.5 !px-3 text-sm w-10 h-10"
         onclick={setImageLink}
         disabled={!isImageSelected()}
       >
@@ -982,9 +1003,9 @@ async function onInlineImageSelected(event) {
 
       <button
         type="button"
-        aria-label="Imagen izquierda"
+         aria-label="Imagen izquierda"
         title="Imagen izquierda"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+         class="hidden cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'left'}
         class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'left'}
         onmousedown={(event) => event.preventDefault()}
@@ -1004,9 +1025,9 @@ async function onInlineImageSelected(event) {
 
       <button
         type="button"
-        aria-label="Imagen centrada"
+         aria-label="Imagen centrada"
         title="Imagen centrada"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+         class="hidden cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'center'}
         class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'center'}
         onmousedown={(event) => event.preventDefault()}
@@ -1026,9 +1047,9 @@ async function onInlineImageSelected(event) {
 
       <button
         type="button"
-        aria-label="Imagen derecha"
+         aria-label="Imagen derecha"
         title="Imagen derecha"
-        class="cms-btn-secondary !py-1.5 !px-3 text-sm"
+         class="hidden cms-btn-secondary !py-1.5 !px-3 text-sm"
         class:bg-slate-200={isImageSelected() && getCurrentImageAlign() === 'right'}
         class:border-slate-400={isImageSelected() && getCurrentImageAlign() === 'right'}
         onmousedown={(event) => event.preventDefault()}
@@ -1054,6 +1075,24 @@ async function onInlineImageSelected(event) {
     class="cms-input min-h-0 h-[55vh] max-h-[36rem] overflow-y-auto py-3 leading-relaxed"
   ></div>
 </div>
+
+<UrlModal
+  open={urlModal.open}
+  title={urlModal.mode === 'image' ? 'Enlace de imagen' : 'Enlace de texto'}
+  value={urlModal.value}
+  error={urlModal.error}
+  allowRemove={Boolean(urlModal.value) && urlModal.mode !== 'error'}
+  onSave={saveUrlModal}
+  onCancel={closeUrlModal}
+  onRemove={removeUrlModal}
+/>
+
+<NoticeModal
+  open={urlModal.open && urlModal.mode === 'error'}
+  title="No se pudo subir la imagen"
+  message={urlModal.error}
+  onClose={closeUrlModal}
+/>
 
 <style>
   :global(.rich-text-editor .ProseMirror) {

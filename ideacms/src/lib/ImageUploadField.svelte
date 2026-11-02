@@ -1,6 +1,7 @@
 <script>
   import { uploadImage } from './api.js';
   import { mediaUrl } from './media.js';
+  import NoticeModal from './NoticeModal.svelte';
 
   /**
    * @typedef {Object} Props
@@ -18,6 +19,7 @@
 
   let uploading = $state(false);
   let fileInput = $state(/** @type {HTMLInputElement | null} */ (null));
+  let uploadError = $state('');
 
   async function onFile(/** @type {Event & { currentTarget: HTMLInputElement }} */ e) {
     const f = e.currentTarget?.files?.[0];
@@ -38,7 +40,7 @@
       const data = await uploadImage(f);
       if (data?.path) onChange?.(data.path);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al subir');
+      uploadError = err instanceof Error ? err.message : 'Error al subir';
     } finally {
       uploading = false;
       e.currentTarget.value = '';
@@ -90,3 +92,5 @@
     </button>
   </div>
 </div>
+
+<NoticeModal open={Boolean(uploadError)} title="No se pudo subir la imagen" message={uploadError} onClose={() => (uploadError = '')} />

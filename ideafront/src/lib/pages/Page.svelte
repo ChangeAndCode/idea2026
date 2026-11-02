@@ -10,6 +10,7 @@
   let blocks = [];
   let carouselIndexes = {};
   let carouselTimer;
+  let carouselTouchStartX = 0;
   let loading = true;
   let notFound = false;
 
@@ -57,6 +58,20 @@
     const count = Array.isArray(block.slides) ? block.slides.length : 0;
     if (!count) return;
     setSlide(block, (currentSlideIndex(block) + direction + count) % count);
+  }
+
+  function onCarouselTouchStart(event) {
+    carouselTouchStartX = event.touches[0]?.clientX ?? 0;
+  }
+
+  function onCarouselTouchEnd(event, block) {
+    const endX = event.changedTouches[0]?.clientX ?? carouselTouchStartX;
+    const distance = endX - carouselTouchStartX;
+    if (Math.abs(distance) >= 40) {
+      changeSlide(block, distance < 0 ? 1 : -1);
+      resetCarouselAutoplay();
+    }
+    carouselTouchStartX = 0;
   }
 
   function startCarouselAutoplay() {
@@ -122,7 +137,7 @@
                   {@const slides = block.slides ?? []}
                   {@const slide = slides[currentSlideIndex(block)]}
                   {#if slide}
-                    <div class="relative rounded-lg bg-white p-4 text-idea-dark">
+                    <div class="relative touch-pan-y rounded-lg bg-white p-4 text-idea-dark" on:touchstart={onCarouselTouchStart} on:touchend={(event) => onCarouselTouchEnd(event, block)}>
                       {#if imageSrc(slide.image)}
                         {#if slide.link}<a href={slide.link}><img src={imageSrc(slide.image)} alt={slide.alt || ''} class="mx-auto max-h-[28rem] w-full object-contain" /></a>{:else}<img src={imageSrc(slide.image)} alt={slide.alt || ''} class="mx-auto max-h-[28rem] w-full object-contain" />{/if}
                       {/if}
@@ -133,7 +148,7 @@
                         <button type="button" class="absolute right-4 top-1/2 z-10 rounded-full bg-idea-dark/80 px-3 py-2 text-xl text-white" aria-label="Siguiente slide" on:click|stopPropagation={() => { changeSlide(block, 1); resetCarouselAutoplay(); }}>›</button>
                         <div class="mt-4 flex justify-center gap-2" aria-label="Seleccionar slide">
                           {#each slides as item, index (item.id)}
-                            <button type="button" class="h-2.5 w-2.5 rounded-full {index === currentSlideIndex(block) ? 'bg-idea-dark' : 'bg-slate-300'}" aria-label={`Ir al slide ${index + 1}`} on:click|stopPropagation={() => { setSlide(block, index); resetCarouselAutoplay(); }}></button>
+                            <button type="button" class="h-2 w-9 rounded-full {index === currentSlideIndex(block) ? 'bg-idea-dark' : 'bg-slate-300'}" aria-label={`Ir al slide ${index + 1}`} on:click|stopPropagation={() => { setSlide(block, index); resetCarouselAutoplay(); }}></button>
                           {/each}
                         </div>
                       {/if}
@@ -203,6 +218,13 @@
 {/if}
 
 <style>
+  @media (max-width: 767px) {
+    :global(button[aria-label="Slide anterior"]),
+    :global(button[aria-label="Siguiente slide"]) {
+      display: none;
+    }
+  }
+
   .page-body :global(mark) {
     background: #fee68a;
     color: #0f2f7a;
