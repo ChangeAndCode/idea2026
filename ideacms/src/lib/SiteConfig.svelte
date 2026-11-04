@@ -267,6 +267,8 @@
                 {#each item.children || [] as child, childIndex}
                   <div
                     class="flex flex-wrap items-center gap-2 rounded-lg border-2 pl-1 transition-colors {draggingChild?.navIndex === i && draggingChild?.childIndex === childIndex ? 'opacity-50 border-transparent' : dragOverChild?.navIndex === i && dragOverChild?.childIndex === childIndex ? 'border-idea-blue bg-blue-50' : 'border-transparent'}"
+                    role="listitem"
+                    aria-label={`Opción desplegable ${childIndex + 1}`}
                     data-child-row
                     data-nav-index={i}
                     data-child-index={childIndex}

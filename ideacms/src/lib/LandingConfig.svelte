@@ -48,6 +48,8 @@
   let savedSection = $state(null);
   let socialLinks = $state([]);
   let socialDeleteIndex = $state(null);
+  let collapsedCards = $state(new Set());
+  let draggingCard = $state(null);
 
   function isValidLink(value) {
     const link = String(value ?? '').trim();
@@ -190,6 +192,12 @@
   function setCard(i, field, value) {
     landing = { ...landing, ciudadHablaCards: (landing.ciudadHablaCards ?? []).map((c, idx) => (idx === i ? { ...c, [field]: value } : c)) };
   }
+
+  function autoGrowTextarea(event) {
+    const textarea = event.currentTarget;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }
   function addCard() {
     const cards = landing.ciudadHablaCards ?? [];
     landing = { ...landing, ciudadHablaCards: [...cards, { title: '', text: '', img: '', imgAlt: '', imageLink: '', buttonText: 'Leer más', buttonLink: '', imageOnLeft: true }] };
@@ -205,6 +213,28 @@
     const arr = [...cards];
     [arr[i], arr[next]] = [arr[next], arr[i]];
     landing = { ...landing, ciudadHablaCards: arr };
+  }
+
+  function toggleCard(i) {
+    const next = new Set(collapsedCards);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    collapsedCards = next;
+  }
+
+  function startCardDrag(i) {
+    draggingCard = i;
+  }
+
+  function dropCard(i) {
+    if (draggingCard === null || draggingCard === i) {
+      draggingCard = null;
+      return;
+    }
+    const cards = [...(landing.ciudadHablaCards ?? [])];
+    const [moved] = cards.splice(draggingCard, 1);
+    cards.splice(i, 0, moved);
+    landing = { ...landing, ciudadHablaCards: cards };
+    draggingCard = null;
   }
 
   function setLocation(i, field, value) {
@@ -267,43 +297,43 @@
         <div class="flex items-center gap-2">
           {#if savedSection === 'hero'}
             <span class="text-sm text-green-600 font-medium">Guardado</span>
-     {:else if activeTab === 'socials'}
-     <section class="cms-card p-8">
-       <div class="flex items-center justify-between gap-3 mb-6">
-         <div><h3 class="text-base font-semibold text-slate-800">Redes sociales</h3><p class="text-sm text-slate-500 mt-1">Administra los enlaces del pie de página.</p></div>
-         <div class="flex items-center gap-3">
-           {#if savedSection === 'socials'}
-             <span class="text-sm font-medium text-green-600">Guardado exitosamente</span>
-           {/if}
-           <button class="cms-btn-primary" onclick={() => saveSection('socials')} disabled={savingSection === 'socials'}>{savingSection === 'socials' ? 'Guardando…' : 'Guardar'}</button>
-         </div>
-       </div>
-       <div class="space-y-3">
-         {#each socialLinks as social, i}
+    {:else if activeTab === 'socials'}
+    <section class="cms-card p-8">
+      <div class="flex items-center justify-between gap-3 mb-6">
+        <div><h3 class="text-base font-semibold text-slate-800">Redes sociales</h3><p class="text-sm text-slate-500 mt-1">Administra los enlaces del pie de página.</p></div>
+        <div class="flex items-center gap-3">
+          {#if savedSection === 'socials'}
+            <span class="text-sm font-medium text-green-600">Guardado exitosamente</span>
+          {/if}
+          <button class="cms-btn-primary" onclick={() => saveSection('socials')} disabled={savingSection === 'socials'}>{savingSection === 'socials' ? 'Guardando…' : 'Guardar'}</button>
+        </div>
+      </div>
+      <div class="space-y-3">
+        {#each socialLinks as social, i}
             <div class="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-             <div class="w-full space-y-3">
-               <div class="flex flex-wrap items-center gap-3">
-                 <input class="cms-input flex-1" value={social.label} placeholder="Nombre de la red social" oninput={(e) => { social.label = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
-                 <input class="cms-input flex-1" value={social.url} placeholder="https://ejemplo.com/perfil" oninput={(e) => { social.url = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
-                 <button class="text-2xl text-red-600" onclick={() => removeSocial(i)}>×</button>
-               </div>
-               <ImageUploadField
-                 compact
-                 id="social-icon-{i}"
-                 label="Icono de la red social"
-                 value={social.icon}
-                 requiredWidth={128}
-                 requiredHeight={128}
-                 onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
-               />
-               <p class="text-xs text-slate-500">Usa un icono cuadrado de 128 × 128 píxeles, preferentemente PNG con fondo transparente.</p>
-             </div>
-           </div>
-         {/each}
-       </div>
-       <button class="cms-btn-secondary mt-4" onclick={addSocial}>+ Agregar red social</button>
-     </section>
-     {/if}
+            <div class="w-full space-y-3">
+              <div class="flex flex-wrap items-center gap-3">
+                <input class="cms-input flex-1" value={social.label} placeholder="Nombre de la red social" oninput={(e) => { social.label = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
+                <input class="cms-input flex-1" value={social.url} placeholder="https://ejemplo.com/perfil" oninput={(e) => { social.url = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
+                <button class="text-2xl text-red-600" onclick={() => removeSocial(i)}>×</button>
+              </div>
+              <ImageUploadField
+                compact
+                id="social-icon-{i}"
+                label="Icono de la red social"
+                value={social.icon}
+                requiredWidth={128}
+                requiredHeight={128}
+                onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
+              />
+              <p class="text-xs text-slate-500">Usa un icono cuadrado de 128 × 128 píxeles, preferentemente PNG con fondo transparente.</p>
+            </div>
+          </div>
+        {/each}
+      </div>
+      <button class="cms-btn-secondary mt-4" onclick={addSocial}>+ Agregar red social</button>
+    </section>
+    {/if}
           <button type="button" class="cms-btn-primary !py-2 !px-4 text-sm" disabled={savingSection === 'hero'} onclick={() => saveSection('hero')}>
             {savingSection === 'hero' ? 'Guardando…' : 'Guardar'}
           </button>
@@ -500,25 +530,32 @@
           </button>
         </div>
       </div>
-      <p class="text-sm text-slate-500 mb-6">Título y tarjetas (imagen + título + texto + botón). «Imagen a la izquierda» define el orden en escritorio.</p>
+      <div class="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        <p class="font-semibold">Recomendaci&oacute;n para im&aacute;genes</p>
+        <p class="mt-1">Usa im&aacute;genes horizontales de <strong>1200 x 800 px (proporci&oacute;n 3:2)</strong>, preferentemente en JPG o PNG. Mant&eacute;n textos y logotipos dentro del &aacute;rea central y evita im&aacute;genes panor&aacute;micas, verticales o cuadradas para conservar una presentaci&oacute;n uniforme.</p>
+      </div>
       <div class="mb-6">
         <label for="ciudad-habla-title" class="cms-label">Título de la sección</label>
         <textarea id="ciudad-habla-title" class="cms-input min-h-[60px]" value={landing.ciudadHablaTitle ?? ''} oninput={(e) => setHero('ciudadHablaTitle', e.target.value)} placeholder="La ciudad habla.&#10;¿Ya la escuchaste?"></textarea>
       </div>
       <ul class="space-y-4">
         {#each (landing.ciudadHablaCards ?? []) as card, i}
-          <li class="rounded-lg border border-slate-200 bg-slate-50 p-5">
+          <li class="rounded-lg border border-slate-200 bg-slate-50 p-5 transition-opacity {draggingCard === i ? 'opacity-50' : ''}" draggable="true" ondragstart={() => startCardDrag(i)} ondragover={(event) => event.preventDefault()} ondrop={() => dropCard(i)} ondragend={() => (draggingCard = null)}>
             <div class="mb-2 flex items-center justify-between">
-              <span class="text-sm font-medium text-slate-600">Tarjeta {i + 1}</span>
-              <div class="flex gap-1">
+              <div class="flex min-w-0 cursor-grab items-center gap-2 active:cursor-grabbing"><span class="text-slate-400" title="Arrastrar para reordenar" aria-hidden="true">⠿</span><span class="truncate text-sm font-medium text-slate-600">Tarjeta {i + 1}: {card.imgAlt || 'Sin Alt'}</span></div>
+              <div class="flex items-center gap-1">
+                <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200" title={collapsedCards.has(i) ? 'Mostrar tarjeta' : 'Ocultar tarjeta'} aria-label={collapsedCards.has(i) ? 'Mostrar tarjeta' : 'Ocultar tarjeta'} onclick={() => toggleCard(i)}>
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                </button>
                 <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveCard(i, -1)} disabled={i === 0}>↑</button>
                 <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Bajar" onclick={() => moveCard(i, 1)} disabled={i === (landing.ciudadHablaCards ?? []).length - 1}>↓</button>
                 <button type="button" class="p-1.5 text-red-600 hover:bg-red-100 rounded" title="Quitar" onclick={() => removeCard(i)}>✕</button>
               </div>
             </div>
+            {#if !collapsedCards.has(i)}
             <div class="space-y-2">
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Título de la tarjeta" value={card.title} oninput={(e) => setCard(i, 'title', e.target.value)} />
-              <textarea class="cms-input !py-2 text-sm min-h-[60px]" placeholder="Texto (párrafo)" value={card.text} oninput={(e) => setCard(i, 'text', e.target.value)}></textarea>
+              <textarea class="cms-input !py-2 text-sm min-h-[60px] resize-none overflow-hidden" placeholder="Texto (párrafo)" value={card.text} onfocus={autoGrowTextarea} oninput={(e) => { setCard(i, 'text', e.target.value); autoGrowTextarea(e); }}></textarea>
               <ImageUploadField
                 compact
                 id="ciudad-card-img-{i}"
@@ -535,6 +572,7 @@
                 Imagen a la izquierda (escritorio)
               </label>
             </div>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -584,22 +622,22 @@
           </li>
         {/each}
       </ul>
-       <button type="button" class="mt-3 cms-btn-secondary !py-2 !px-3 text-sm" onclick={addLocation}>+ Añadir ubicación</button>
-     </section>
+      <button type="button" class="mt-3 cms-btn-secondary !py-2 !px-3 text-sm" onclick={addLocation}>+ Añadir ubicación</button>
+    </section>
 
-     {:else if activeTab === 'socials'}
-     <section class="cms-card p-8">
-       <div class="flex items-center justify-between gap-3 mb-6">
-         <div><h3 class="text-base font-semibold text-slate-800">Redes sociales</h3><p class="text-sm text-slate-500 mt-1">Administra los enlaces del pie de página.</p></div>
-         <button class="cms-btn-primary" onclick={() => saveSection('socials')} disabled={savingSection === 'socials'}>{savingSection === 'socials' ? 'Guardando…' : 'Guardar'}</button>
-       </div>
+    {:else if activeTab === 'socials'}
+    <section class="cms-card p-8">
+      <div class="flex items-center justify-between gap-3 mb-6">
+        <div><h3 class="text-base font-semibold text-slate-800">Redes sociales</h3><p class="text-sm text-slate-500 mt-1">Administra los enlaces del pie de página.</p></div>
+        <button class="cms-btn-primary" onclick={() => saveSection('socials')} disabled={savingSection === 'socials'}>{savingSection === 'socials' ? 'Guardando…' : 'Guardar'}</button>
+      </div>
         {#if savedSection === 'socials'}
           <p class="mb-4 text-sm font-medium text-green-600" role="status">
             Guardado exitosamente
           </p>
         {/if}
-       <div class="space-y-3">
-         {#each socialLinks as social, i}
+      <div class="space-y-3">
+        {#each socialLinks as social, i}
             <div class="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
               <div class="flex flex-col items-stretch gap-3 pr-10">
                 <input class="cms-input w-full" value={social.label} placeholder="Nombre de la red social" oninput={(e) => { social.label = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
@@ -615,25 +653,25 @@
                 onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
               />
               <p class="text-xs text-slate-500">Medida obligatoria: 128 × 128 píxeles. Recomendado: PNG con fondo transparente.</p>
-               <button class="absolute right-3 top-3 text-2xl text-red-600" onclick={() => socialDeleteIndex = i}>×</button>
- </div>
+              <button class="absolute right-3 top-3 text-2xl text-red-600" onclick={() => socialDeleteIndex = i}>×</button>
+</div>
 
- {#if socialDeleteIndex !== null}
-   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-     <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-       <h2 class="text-lg font-semibold text-slate-800">¿Eliminar esta red social?</h2>
-       <p class="mt-2 text-sm text-slate-600">La tarjeta se quitará de la configuración. Esta acción no se puede deshacer.</p>
-       <div class="mt-5 flex justify-end gap-2">
-         <button type="button" class="cms-btn-secondary" onclick={() => socialDeleteIndex = null}>Cancelar</button>
-         <button type="button" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700" onclick={confirmRemoveSocial}>Eliminar</button>
-       </div>
-     </div>
-   </div>
- {/if}
-         {/each}
-       </div>
-       <button class="cms-btn-secondary mt-4" onclick={addSocial}>+ Agregar red social</button>
-     </section>
-     {/if}
+{#if socialDeleteIndex !== null}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+    <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+      <h2 class="text-lg font-semibold text-slate-800">¿Eliminar esta red social?</h2>
+      <p class="mt-2 text-sm text-slate-600">La tarjeta se quitará de la configuración. Esta acción no se puede deshacer.</p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" class="cms-btn-secondary" onclick={() => socialDeleteIndex = null}>Cancelar</button>
+        <button type="button" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700" onclick={confirmRemoveSocial}>Eliminar</button>
+      </div>
+    </div>
+  </div>
+{/if}
+        {/each}
+      </div>
+      <button class="cms-btn-secondary mt-4" onclick={addSocial}>+ Agregar red social</button>
+    </section>
+    {/if}
   {/if}
 </div>
