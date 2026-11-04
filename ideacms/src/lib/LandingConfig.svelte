@@ -50,6 +50,14 @@
   let socialDeleteIndex = $state(null);
   let collapsedCards = $state(new Set());
   let draggingCard = $state(null);
+  let collapsedLogos = $state(new Set());
+  let draggingLogo = $state(null);
+  let collapsedSlides = $state(new Set());
+  let draggingSlide = $state(null);
+  let collapsedLocations = $state(new Set());
+  let draggingLocation = $state(null);
+  let collapsedSocials = $state(new Set());
+  let draggingSocial = $state(null);
 
   function isValidLink(value) {
     const link = String(value ?? '').trim();
@@ -109,6 +117,29 @@
     socialDeleteIndex = null;
   }
 
+  function toggleSocial(i) {
+    const next = new Set(collapsedSocials);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    collapsedSocials = next;
+  }
+
+  function dropSocial(i) {
+    if (draggingSocial === null || draggingSocial === i) { draggingSocial = null; return; }
+    const next = [...socialLinks];
+    const [moved] = next.splice(draggingSocial, 1);
+    next.splice(i, 0, moved);
+    socialLinks = next;
+    draggingSocial = null;
+  }
+
+  function moveSocial(i, delta) {
+    const nextIndex = i + delta;
+    if (nextIndex < 0 || nextIndex >= socialLinks.length) return;
+    const next = [...socialLinks];
+    [next[i], next[nextIndex]] = [next[nextIndex], next[i]];
+    socialLinks = next;
+  }
+
   async function saveSection(sectionId) {
     if (sectionId === 'socials') {
       savingSection = sectionId;
@@ -164,6 +195,21 @@
     landing = { ...landing, carouselSlides: landing.carouselSlides.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)) };
   }
 
+  function toggleSlide(i) {
+    const next = new Set(collapsedSlides);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    collapsedSlides = next;
+  }
+
+  function dropSlide(i) {
+    if (draggingSlide === null || draggingSlide === i) { draggingSlide = null; return; }
+    const slides = [...landing.carouselSlides];
+    const [moved] = slides.splice(draggingSlide, 1);
+    slides.splice(i, 0, moved);
+    landing = { ...landing, carouselSlides: slides };
+    draggingSlide = null;
+  }
+
   function setHero(field, value) {
     landing = { ...landing, [field]: value };
   }
@@ -187,6 +233,21 @@
     const arr = [...logos];
     [arr[i], arr[next]] = [arr[next], arr[i]];
     landing = { ...landing, heroLogos: arr };
+  }
+
+  function toggleLogo(i) {
+    const next = new Set(collapsedLogos);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    collapsedLogos = next;
+  }
+
+  function dropLogo(i) {
+    if (draggingLogo === null || draggingLogo === i) { draggingLogo = null; return; }
+    const logos = [...(landing.heroLogos ?? [])];
+    const [moved] = logos.splice(draggingLogo, 1);
+    logos.splice(i, 0, moved);
+    landing = { ...landing, heroLogos: logos };
+    draggingLogo = null;
   }
 
   function setCard(i, field, value) {
@@ -255,6 +316,21 @@
     const arr = [...locs];
     [arr[i], arr[next]] = [arr[next], arr[i]];
     landing = { ...landing, locations: arr };
+  }
+
+  function toggleLocation(i) {
+    const next = new Set(collapsedLocations);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    collapsedLocations = next;
+  }
+
+  function dropLocation(i) {
+    if (draggingLocation === null || draggingLocation === i) { draggingLocation = null; return; }
+    const locations = [...(landing.locations ?? [])];
+    const [moved] = locations.splice(draggingLocation, 1);
+    locations.splice(i, 0, moved);
+    landing = { ...landing, locations };
+    draggingLocation = null;
   }
 
   $effect(() => {
@@ -382,15 +458,19 @@
       <p class="text-sm text-slate-500 mb-6">Logos que se muestran en la franja blanca justo debajo del banner principal. Ordena con ↑↓.</p>
       <ul class="space-y-4">
         {#each (landing.heroLogos ?? []) as logo, i}
-          <li class="rounded-lg border border-slate-200 bg-slate-50 p-5">
+          <li class="rounded-lg border border-slate-200 bg-slate-50 p-5 transition-opacity {draggingLogo === i ? 'opacity-50' : ''}" draggable="true" ondragstart={() => (draggingLogo = i)} ondragover={(event) => event.preventDefault()} ondrop={() => dropLogo(i)} ondragend={() => (draggingLogo = null)}>
             <div class="mb-3 flex items-center justify-between">
-              <span class="text-sm font-medium text-slate-600">Logo {i + 1}</span>
-              <div class="flex gap-1">
+              <div class="flex min-w-0 cursor-grab items-center gap-2 active:cursor-grabbing"><span class="text-slate-400" aria-hidden="true">⠿</span><span class="truncate text-sm font-medium text-slate-600">Logo {i + 1}: {logo.alt || 'Sin descripción'}</span></div>
+              <div class="flex items-center gap-1">
+                <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200" title={collapsedLogos.has(i) ? 'Mostrar logo' : 'Ocultar logo'} aria-label={collapsedLogos.has(i) ? 'Mostrar logo' : 'Ocultar logo'} onclick={() => toggleLogo(i)}>
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                </button>
                 <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveLogo(i, -1)} disabled={i === 0}>↑</button>
                 <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Bajar" onclick={() => moveLogo(i, 1)} disabled={i === (landing.heroLogos ?? []).length - 1}>↓</button>
                 <button type="button" class="p-1.5 text-red-600 hover:bg-red-100 rounded" title="Quitar" onclick={() => removeLogo(i)}>✕</button>
               </div>
             </div>
+            {#if !collapsedLogos.has(i)}
             <div class="space-y-3">
               <ImageUploadField
                 id="logo-src-{i}"
@@ -407,6 +487,7 @@
                 <input id="logo-link-{i}" type="text" class="cms-input mt-1" placeholder="https://ejemplo.com o /pagina/ejemplo" value={logo.link ?? ''} oninput={(e) => setLogo(i, 'link', e.target.value)} />
               </div>
             </div>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -446,15 +527,19 @@
       <p class="text-sm text-slate-500 mb-6">Tarjetas con imagen o solo texto. Ordena con ↑↓.</p>
       <ul class="space-y-4">
         {#each landing.carouselSlides as slide, i}
-          <li class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <li class="rounded-lg border border-slate-200 bg-slate-50 p-4 transition-opacity {draggingSlide === i ? 'opacity-50' : ''}" draggable="true" ondragstart={() => (draggingSlide = i)} ondragover={(event) => event.preventDefault()} ondrop={() => dropSlide(i)} ondragend={() => (draggingSlide = null)}>
             <div class="mb-2 flex items-center justify-between">
-              <span class="text-sm font-medium text-slate-600">Tarjeta {i + 1}</span>
-              <div class="flex gap-1">
+              <div class="flex min-w-0 cursor-grab items-center gap-2 active:cursor-grabbing"><span class="text-slate-400" aria-hidden="true">⠿</span><span class="truncate text-sm font-medium text-slate-600">Tarjeta {i + 1}: {slide.type === 'info' ? (slide.text || 'Sin texto') : (slide.title || slide.alt || 'Sin titulo')}</span></div>
+              <div class="flex items-center gap-1">
+                <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200" title={collapsedSlides.has(i) ? 'Mostrar tarjeta' : 'Ocultar tarjeta'} aria-label={collapsedSlides.has(i) ? 'Mostrar tarjeta' : 'Ocultar tarjeta'} onclick={() => toggleSlide(i)}>
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                </button>
                 <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveSlide(i, -1)} disabled={i === 0}>↑</button>
                 <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Bajar" onclick={() => moveSlide(i, 1)} disabled={i === landing.carouselSlides.length - 1}>↓</button>
                 <button type="button" class="p-1.5 text-red-600 hover:bg-red-100 rounded" title="Quitar" onclick={() => removeSlide(i)}>✕</button>
               </div>
             </div>
+            {#if !collapsedSlides.has(i)}
             {#if slide.type === 'info'}
               <div class="space-y-2">
                 <label class="block">
@@ -507,6 +592,7 @@
                   <input type="text" class="cms-input !py-2 text-sm" placeholder="/pagina/ejemplo o https://ejemplo.com" value={slide.link ?? ''} oninput={(e) => setSlide(i, 'link', e.target.value)} />
                 </label>
               </div>
+            {/if}
             {/if}
           </li>
         {/each}
@@ -599,7 +685,20 @@
       </div>
       <ul class="space-y-4">
         {#each (landing.locations ?? []) as loc, i}
-          <li class="rounded-lg border border-slate-200 bg-slate-50 p-5 flex flex-wrap items-center gap-2">
+          <li class="rounded-lg border border-slate-200 bg-slate-50 p-5 transition-opacity {draggingLocation === i ? 'opacity-50' : ''}" draggable="true" ondragstart={() => (draggingLocation = i)} ondragover={(event) => event.preventDefault()} ondrop={() => dropLocation(i)} ondragend={() => (draggingLocation = null)}>
+            <div class="mb-3 flex items-center justify-between gap-2">
+              <div class="flex min-w-0 cursor-grab items-center gap-2 active:cursor-grabbing"><span class="text-slate-400" aria-hidden="true">⠿</span><span class="truncate text-sm font-medium text-slate-600">Ubicaci&oacute;n {i + 1}: {loc.name || 'Sin nombre'}</span></div>
+              <div class="flex items-center gap-1">
+                <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200" title={collapsedLocations.has(i) ? 'Mostrar ubicacion' : 'Ocultar ubicacion'} aria-label={collapsedLocations.has(i) ? 'Mostrar ubicacion' : 'Ocultar ubicacion'} onclick={() => toggleLocation(i)}>
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                </button>
+                <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveLocation(i, -1)} disabled={i === 0}>↑</button>
+                <button type="button" class="p-1.5 text-slate-500 hover:bg-slate-200 rounded" title="Bajar" onclick={() => moveLocation(i, 1)} disabled={i === (landing.locations ?? []).length - 1}>↓</button>
+                <button type="button" class="p-1.5 text-red-600 hover:bg-red-100 rounded" title="Quitar" onclick={() => removeLocation(i)}>×</button>
+              </div>
+            </div>
+            {#if !collapsedLocations.has(i)}
+            <div class="flex flex-wrap items-center gap-2">
             <div class="flex-1 min-w-[200px] space-y-2">
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Nombre del lugar" value={loc.name} oninput={(e) => setLocation(i, 'name', e.target.value)} />
               <input type="text" class="cms-input !py-2 text-sm" placeholder="Dirección" value={loc.address} oninput={(e) => setLocation(i, 'address', e.target.value)} />
@@ -614,11 +713,13 @@
                 onChange={(v) => setLocation(i, 'mapImage', v)}
               />
             </div>
-            <div class="flex gap-1">
+            <div class="hidden">
               <button type="button" class="p-2 text-slate-500 hover:bg-slate-200 rounded" title="Subir" onclick={() => moveLocation(i, -1)} disabled={i === 0}>↑</button>
               <button type="button" class="p-2 text-slate-500 hover:bg-slate-200 rounded" title="Bajar" onclick={() => moveLocation(i, 1)} disabled={i === (landing.locations ?? []).length - 1}>↓</button>
               <button type="button" class="p-2 text-red-600 hover:bg-red-100 rounded" title="Quitar" onclick={() => removeLocation(i)}>✕</button>
             </div>
+            </div>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -638,7 +739,20 @@
         {/if}
       <div class="space-y-3">
         {#each socialLinks as social, i}
-            <div class="relative flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div class="relative rounded-lg border border-slate-200 bg-slate-50 p-4 transition-opacity {draggingSocial === i ? 'opacity-50' : ''}" draggable="true" ondragstart={() => (draggingSocial = i)} ondragover={(event) => event.preventDefault()} ondrop={() => dropSocial(i)} ondragend={() => (draggingSocial = null)}>
+              <div class="mb-3 flex items-center justify-between gap-2">
+                <div class="flex min-w-0 cursor-grab items-center gap-2 active:cursor-grabbing"><span class="text-slate-400" aria-hidden="true">⠿</span><span class="truncate text-sm font-medium text-slate-600">Red social {i + 1}: {social.label || 'Sin nombre'}</span></div>
+                <div class="flex items-center gap-1">
+                  <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200" title={collapsedSocials.has(i) ? 'Mostrar red social' : 'Ocultar red social'} aria-label={collapsedSocials.has(i) ? 'Mostrar red social' : 'Ocultar red social'} onclick={() => toggleSocial(i)}>
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                  </button>
+                  <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200 disabled:opacity-40" title="Subir" aria-label="Subir" onclick={() => moveSocial(i, -1)} disabled={i === 0}>↑</button>
+                  <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200 disabled:opacity-40" title="Bajar" aria-label="Bajar" onclick={() => moveSocial(i, 1)} disabled={i === socialLinks.length - 1}>↓</button>
+                  <button type="button" class="rounded p-1.5 text-red-600 hover:bg-red-100" title="Quitar" onclick={() => socialDeleteIndex = i}>×</button>
+                </div>
+              </div>
+              {#if !collapsedSocials.has(i)}
+              <div class="flex flex-col gap-3">
               <div class="flex flex-col items-stretch gap-3 pr-10">
                 <input class="cms-input w-full" value={social.label} placeholder="Nombre de la red social" oninput={(e) => { social.label = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
                 <input class="cms-input w-full" value={social.url} placeholder="https://ejemplo.com/perfil" oninput={(e) => { social.url = e.currentTarget.value; socialLinks = [...socialLinks]; }} />
@@ -653,10 +767,10 @@
                 onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
               />
               <p class="text-xs text-slate-500">Medida obligatoria: 128 × 128 píxeles. Recomendado: PNG con fondo transparente.</p>
-              <button class="absolute right-3 top-3 text-2xl text-red-600" onclick={() => socialDeleteIndex = i}>×</button>
-</div>
-
-{#if socialDeleteIndex !== null}
+              </div>
+              {/if}
+            </div>
+            {#if socialDeleteIndex !== null}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
     <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
       <h2 class="text-lg font-semibold text-slate-800">¿Eliminar esta red social?</h2>

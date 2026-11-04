@@ -29,6 +29,9 @@
   let logoMunicipioLink = $state('');
   let logoIdeaLink = $state('');
   let logoChihuahuaLink = $state('');
+  let logoMunicipioAlt = $state('Gobierno Municipal Chihuahua');
+  let logoIdeaAlt = $state('IDEA');
+  let logoChihuahuaAlt = $state('Chihuahua capital de trabajo y resultados');
   let socialLinks = $state([]);
 
   function submenuFor(item) {
@@ -59,6 +62,9 @@
       logoMunicipioLink = data.logoMunicipioLink ?? '';
       logoIdeaLink = data.logoIdeaLink ?? '';
       logoChihuahuaLink = data.logoChihuahuaLink ?? '';
+      logoMunicipioAlt = data.logoMunicipioAlt || logoMunicipioAlt;
+      logoIdeaAlt = data.logoIdeaAlt || logoIdeaAlt;
+      logoChihuahuaAlt = data.logoChihuahuaAlt || logoChihuahuaAlt;
       const socialRes = await fetch(apiUrl('/api/cms/social-links'));
       if (socialRes.ok) socialLinks = (await socialRes.json()).filter((item) => item.enabled !== false && item.url);
     } catch (_) {
@@ -88,9 +94,9 @@
   <div class="flex justify-center items-center">
     <nav class="flex w-full max-w-[1600px] min-w-0 items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
       <div class="flex min-w-0 shrink items-center gap-1 sm:gap-2">
-        {#if logoMunicipioLink}<a href={logoMunicipioLink}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{:else}<a href="/" onclick={(e) => { e.preventDefault(); go('/'); }}><img src={mediaUrl(logoMunicipio)} alt="Gobierno Municipal Chihuahua" class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{/if}
-        {#if logoIdeaLink}<a href={logoIdeaLink}><img src={mediaUrl(logoIdea)} alt="IDEA" class="h-8 w-auto max-w-[88px] object-contain sm:h-10 sm:max-w-[120px]" /></a>{:else}<img src={mediaUrl(logoIdea)} alt="IDEA" class="h-8 w-auto max-w-[88px] object-contain sm:h-10 sm:max-w-[120px]" />{/if}
-        {#if logoChihuahuaLink}<a href={logoChihuahuaLink}><img src={mediaUrl(logoChihuahua)} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" /></a>{:else}<img src={mediaUrl(logoChihuahua)} alt="Chihuahua capital de trabajo y resultados" class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" />{/if}
+        {#if logoMunicipioLink}<a href={logoMunicipioLink}><img src={mediaUrl(logoMunicipio)} alt={logoMunicipioAlt} class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{:else}<a href="/" onclick={(e) => { e.preventDefault(); go('/'); }}><img src={mediaUrl(logoMunicipio)} alt={logoMunicipioAlt} class="h-10 w-auto max-w-[90px] object-contain sm:h-12 sm:max-w-[120px]" /></a>{/if}
+        {#if logoIdeaLink}<a href={logoIdeaLink}><img src={mediaUrl(logoIdea)} alt={logoIdeaAlt} class="h-8 w-auto max-w-[88px] object-contain sm:h-10 sm:max-w-[120px]" /></a>{:else}<img src={mediaUrl(logoIdea)} alt={logoIdeaAlt} class="h-8 w-auto max-w-[88px] object-contain sm:h-10 sm:max-w-[120px]" />{/if}
+        {#if logoChihuahuaLink}<a href={logoChihuahuaLink}><img src={mediaUrl(logoChihuahua)} alt={logoChihuahuaAlt} class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" /></a>{:else}<img src={mediaUrl(logoChihuahua)} alt={logoChihuahuaAlt} class="h-8 w-auto max-w-[100px] object-contain sm:h-10 sm:max-w-[160px]" />{/if}
       </div>
 
       <!-- Escritorio: enlaces visibles -->

@@ -18,6 +18,9 @@
   let draggingChild = $state(null);
   let dragOverChild = $state(null);
   let expandedNavItems = $state([]);
+  let logoCards = $state([]);
+  let collapsedLogos = $state(new Set());
+  let draggingLogo = $state(null);
 
   async function load() {
     loading = true;
@@ -35,6 +38,13 @@
       logoMunicipioLink = data.logoMunicipioLink ?? '';
       logoIdeaLink = data.logoIdeaLink ?? '';
       logoChihuahuaLink = data.logoChihuahuaLink ?? '';
+      const cardsByKey = {
+        municipio: { key: 'municipio', label: 'Municipio', alt: data.logoMunicipioAlt ?? 'Gobierno Municipal Chihuahua', image: logoMunicipio, link: logoMunicipioLink },
+        idea: { key: 'idea', label: 'IDEA', alt: data.logoIdeaAlt ?? 'IDEA', image: logoIdea, link: logoIdeaLink },
+        chihuahua: { key: 'chihuahua', label: 'Chihuahua', alt: data.logoChihuahuaAlt ?? 'Chihuahua capital de trabajo y resultados', image: logoChihuahua, link: logoChihuahuaLink },
+      };
+      const order = Array.isArray(data.logoOrder) ? data.logoOrder : ['municipio', 'idea', 'chihuahua'];
+      logoCards = [...order, ...Object.keys(cardsByKey).filter((key) => !order.includes(key))].map((key) => cardsByKey[key]);
     } catch (e) {
       error = e.message;
     } finally {
@@ -121,6 +131,27 @@
     navItems = arr;
   }
 
+  function setLogoCard(index, field, value) {
+    logoCards = logoCards.map((logo, i) => i === index ? { ...logo, [field]: value } : logo);
+  }
+
+  function toggleLogo(index) {
+    const next = new Set(collapsedLogos);
+    if (next.has(index)) next.delete(index); else next.add(index);
+    collapsedLogos = next;
+  }
+
+  function startLogoDrag(index) { draggingLogo = index; }
+
+  function dropLogo(index) {
+    if (draggingLogo === null || draggingLogo === index) { draggingLogo = null; return; }
+    const next = [...logoCards];
+    const [moved] = next.splice(draggingLogo, 1);
+    next.splice(index, 0, moved);
+    logoCards = next;
+    draggingLogo = null;
+  }
+
   function pagePath(page) {
     return `/pagina/${page.slug}`;
   }
@@ -154,12 +185,16 @@
     try {
       await updateSiteConfig({
         navItems: navItems.filter((i) => (i.label ?? '').trim() || (i.path ?? '').trim()),
-        logoMunicipio: logoMunicipio.trim(),
-        logoIdea: logoIdea.trim(),
-        logoChihuahua: logoChihuahua.trim(),
-        logoMunicipioLink: logoMunicipioLink.trim(),
-        logoIdeaLink: logoIdeaLink.trim(),
-        logoChihuahuaLink: logoChihuahuaLink.trim(),
+        logoMunicipio: (logoCards.find((logo) => logo.key === 'municipio')?.image ?? logoMunicipio).trim(),
+        logoIdea: (logoCards.find((logo) => logo.key === 'idea')?.image ?? logoIdea).trim(),
+        logoChihuahua: (logoCards.find((logo) => logo.key === 'chihuahua')?.image ?? logoChihuahua).trim(),
+        logoMunicipioLink: (logoCards.find((logo) => logo.key === 'municipio')?.link ?? logoMunicipioLink).trim(),
+        logoIdeaLink: (logoCards.find((logo) => logo.key === 'idea')?.link ?? logoIdeaLink).trim(),
+        logoChihuahuaLink: (logoCards.find((logo) => logo.key === 'chihuahua')?.link ?? logoChihuahuaLink).trim(),
+        logoMunicipioAlt: logoCards.find((logo) => logo.key === 'municipio')?.alt ?? '',
+        logoIdeaAlt: logoCards.find((logo) => logo.key === 'idea')?.alt ?? '',
+        logoChihuahuaAlt: logoCards.find((logo) => logo.key === 'chihuahua')?.alt ?? '',
+        logoOrder: logoCards.map((logo) => logo.key),
       });
       message = 'Listo. Los cambios ya se ven en el sitio.';
       setTimeout(() => { message = ''; }, 4000);
@@ -312,28 +347,22 @@
         <p class="text-sm text-slate-500 mb-4">
           Sube una imagen para cada logo del encabezado. Si no subes nada en un espacio, en el sitio se sigue usando la imagen por defecto.
         </p>
-        <div class="space-y-6">
-          <ImageUploadField
-            id="logo-municipio"
-            label="Logo 1 (Municipio)"
-            value={logoMunicipio}
-            onChange={(v) => (logoMunicipio = v)}
-          />
-          <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" bind:value={logoMunicipioLink} />
-          <ImageUploadField
-            id="logo-idea"
-            label="Logo 2 (IDEA)"
-            value={logoIdea}
-            onChange={(v) => (logoIdea = v)}
-          />
-          <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" bind:value={logoIdeaLink} />
-          <ImageUploadField
-            id="logo-chihuahua"
-            label="Logo 3 (Chihuahua)"
-            value={logoChihuahua}
-            onChange={(v) => (logoChihuahua = v)}
-          />
-          <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" bind:value={logoChihuahuaLink} />
+        <div class="space-y-4">
+          {#each logoCards as logo, i}
+            <div class="rounded-lg border border-slate-200 bg-white p-4 transition-opacity {draggingLogo === i ? 'opacity-50' : ''}" draggable="true" ondragstart={() => startLogoDrag(i)} ondragover={(event) => event.preventDefault()} ondrop={() => dropLogo(i)} ondragend={() => (draggingLogo = null)}>
+              <div class="mb-2 flex items-center justify-between gap-2">
+                <div class="flex min-w-0 cursor-grab items-center gap-2 active:cursor-grabbing"><span class="text-slate-400" title="Arrastrar para reordenar" aria-hidden="true">⠿</span><span class="truncate text-sm font-medium text-slate-600">Logo {i + 1}: {logo.alt || 'Sin descripción'}</span></div>
+                <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-100" title={collapsedLogos.has(i) ? 'Mostrar logo' : 'Ocultar logo'} aria-label={collapsedLogos.has(i) ? 'Mostrar logo' : 'Ocultar logo'} onclick={() => toggleLogo(i)}>
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+                </button>
+              </div>
+              {#if !collapsedLogos.has(i)}
+                <ImageUploadField id="logo-{logo.key}" label={logo.label} value={logo.image} onChange={(v) => setLogoCard(i, 'image', v)} />
+                <input type="text" class="cms-input mt-2" placeholder="Descripcion del logo (Alt)" value={logo.alt} oninput={(e) => setLogoCard(i, 'alt', e.target.value)} />
+                <input type="text" class="cms-input mt-2" placeholder="Enlace / URL (opcional)" value={logo.link} oninput={(e) => setLogoCard(i, 'link', e.target.value)} />
+              {/if}
+            </div>
+          {/each}
         </div>
       </section>
 
