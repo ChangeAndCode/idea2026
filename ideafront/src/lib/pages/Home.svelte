@@ -503,11 +503,11 @@
     {#each ciudadHablaCards as card}
       <div class="grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:grid-cols-2 md:items-stretch">
         {#if card.imageOnLeft}
-          <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:min-h-[280px] md:rounded-r-none md:rounded-l-2xl md:rounded-tr-none">
+          <div class="relative order-1 h-[220px] overflow-hidden rounded-t-2xl bg-slate-50 md:h-[320px] md:rounded-r-none md:rounded-l-2xl md:rounded-tr-none">
             {#if card.imageLink}
-              <a href={card.imageLink} class="block h-full w-full" aria-label={card.imgAlt || 'Abrir enlace'}><img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" /></a>
+              <a href={card.imageLink} class="block h-full w-full" aria-label={card.imgAlt || 'Abrir enlace'}><img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-contain" /></a>
             {:else}
-              <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+              <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-contain" />
             {/if}
           </div>
           <div class="order-2 flex flex-col justify-center p-6 md:p-8">
@@ -521,11 +521,11 @@
             <p class="mt-4 text-slate-600">{card.text}</p>
             {#if card.buttonLink}<a href={card.buttonLink} class="mt-6 block w-full rounded-xl bg-idea-bright px-6 py-3 text-center font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</a>{:else}<button type="button" class="mt-6 w-full rounded-xl bg-idea-bright px-6 py-3 font-semibold text-white transition hover:opacity-95">{card.buttonText || 'Leer más'}</button>{/if}
           </div>
-          <div class="order-1 min-h-[220px] overflow-hidden rounded-t-2xl md:order-2 md:min-h-[280px] md:rounded-l-none md:rounded-r-2xl md:rounded-tl-none">
+          <div class="relative order-1 h-[220px] overflow-hidden rounded-t-2xl bg-slate-50 md:order-2 md:h-[320px] md:rounded-l-none md:rounded-r-2xl md:rounded-tl-none">
             {#if card.imageLink}
-              <a href={card.imageLink} class="block h-full w-full" aria-label={card.imgAlt || 'Abrir enlace'}><img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" /></a>
+              <a href={card.imageLink} class="block h-full w-full" aria-label={card.imgAlt || 'Abrir enlace'}><img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-contain" /></a>
             {:else}
-              <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-cover" />
+              <img src={mediaUrl(card.img || '')} alt={card.imgAlt || ''} class="h-full w-full object-contain" />
             {/if}
           </div>
         {/if}

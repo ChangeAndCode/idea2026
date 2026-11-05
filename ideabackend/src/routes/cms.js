@@ -231,6 +231,10 @@ const DEFAULT_SITE_CONFIG = {
   logoMunicipioLink: '',
   logoIdeaLink: '',
   logoChihuahuaLink: '',
+  logoMunicipioAlt: 'Gobierno Municipal Chihuahua',
+  logoIdeaAlt: 'IDEA',
+  logoChihuahuaAlt: 'Chihuahua capital de trabajo y resultados',
+  logoOrder: ['municipio', 'idea', 'chihuahua'],
 };
 
 /** Valores por defecto de la landing (página de inicio). */
@@ -364,6 +368,10 @@ router.get('/site', async (req, res, next) => {
           logoMunicipioLink: doc.logoMunicipioLink ?? '',
           logoIdeaLink: doc.logoIdeaLink ?? '',
           logoChihuahuaLink: doc.logoChihuahuaLink ?? '',
+          logoMunicipioAlt: doc.logoMunicipioAlt ?? DEFAULT_SITE_CONFIG.logoMunicipioAlt,
+          logoIdeaAlt: doc.logoIdeaAlt ?? DEFAULT_SITE_CONFIG.logoIdeaAlt,
+          logoChihuahuaAlt: doc.logoChihuahuaAlt ?? DEFAULT_SITE_CONFIG.logoChihuahuaAlt,
+          logoOrder: Array.isArray(doc.logoOrder) ? doc.logoOrder : DEFAULT_SITE_CONFIG.logoOrder,
           landing: normalizeLanding(doc.landing),
         }
       : { ...DEFAULT_SITE_CONFIG, landing: DEFAULT_LANDING };
@@ -402,6 +410,10 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
         update[key] = String(body[key]).trim();
       }
     }
+    for (const key of ['logoMunicipioAlt', 'logoIdeaAlt', 'logoChihuahuaAlt']) {
+      if (body[key] !== undefined) update[key] = String(body[key] ?? '').trim();
+    }
+    if (Array.isArray(body.logoOrder)) update.logoOrder = body.logoOrder.filter((key) => ['municipio', 'idea', 'chihuahua'].includes(key));
     if (body.landing !== undefined) update.landing = normalizeLanding(body.landing);
 
     const db = await getDb();
@@ -420,6 +432,10 @@ router.put('/site', requireCmsAuth, async (req, res, next) => {
       logoMunicipioLink: doc?.logoMunicipioLink ?? '',
       logoIdeaLink: doc?.logoIdeaLink ?? '',
       logoChihuahuaLink: doc?.logoChihuahuaLink ?? '',
+      logoMunicipioAlt: doc?.logoMunicipioAlt ?? DEFAULT_SITE_CONFIG.logoMunicipioAlt,
+      logoIdeaAlt: doc?.logoIdeaAlt ?? DEFAULT_SITE_CONFIG.logoIdeaAlt,
+      logoChihuahuaAlt: doc?.logoChihuahuaAlt ?? DEFAULT_SITE_CONFIG.logoChihuahuaAlt,
+      logoOrder: Array.isArray(doc?.logoOrder) ? doc.logoOrder : DEFAULT_SITE_CONFIG.logoOrder,
       landing: normalizeLanding(doc?.landing),
     };
     res.json(payload);
