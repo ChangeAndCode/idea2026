@@ -11,7 +11,8 @@
     "diagnose": "node scripts/diagnose.js",
     "backup": "node scripts/backup.js",
     "verify": "node scripts/verify.js",
-    "restore": "node scripts/restore.js"
+    "restore": "node scripts/restore.js",
+    "cleanup": "node scripts/cleanup.js"
   },
   "dependencies": {
     "bson": "^7.1.0",
