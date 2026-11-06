@@ -9,7 +9,9 @@
   },
   "scripts": {
     "diagnose": "node scripts/diagnose.js",
-    "backup": "node scripts/backup.js"
+    "backup": "node scripts/backup.js",
+    "verify": "node scripts/verify.js",
+    "restore": "node scripts/restore.js"
   },
   "dependencies": {
     "bson": "^7.1.0",
