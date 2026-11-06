@@ -12,7 +12,9 @@
     "backup": "node scripts/backup.js",
     "verify": "node scripts/verify.js",
     "restore": "node scripts/restore.js",
-    "cleanup": "node scripts/cleanup.js"
+    "cleanup": "node scripts/cleanup.js",
+    "notify:test": "node scripts/notify-test.js",
+    "run:all": "node scripts/run-all.js"
   },
   "dependencies": {
     "bson": "^7.1.0",

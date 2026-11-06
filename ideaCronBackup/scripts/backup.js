@@ -4,6 +4,8 @@ import path from 'path';
 import crypto from 'crypto';
 import { EJSON } from 'bson';
 import { MongoClient } from 'mongodb';
+import { notifyFailure } from './lib/notifier.js';
+import { recordBackupRun } from './lib/run-status.js';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'config', '.env') });
 
@@ -132,10 +134,12 @@ async function main() {
   console.log(`Externo: ${externalDir}`);
   console.log(`Colecciones: ${collections.length}`);
   console.log(`Archivos: ${files.length}`);
+  await recordBackupRun({ type: 'backup', status: 'success', backup: backupName, collections: collections.length, files: files.length, localCopy: true, externalCopy: true });
 }
 
 main().catch((error) => {
   console.error(`Backup fallido: ${error.message}`);
   try { fs.rmSync(stagingDir, { recursive: true, force: true }); } catch {}
-  process.exitCode = 1;
+  recordBackupRun({ type: 'backup', status: 'failure', stage: 'backup', error: error.message }).catch(() => {});
+  notifyFailure('backup', error).finally(() => { process.exitCode = 1; });
 });

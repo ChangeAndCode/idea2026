@@ -116,6 +116,16 @@ export const getAnalyticsPages = (params) => analyticsGet('/pages', params);
 export const getAnalyticsTimeseries = (params) => analyticsGet('/timeseries', params);
 export const getAnalyticsHistory = (params) => analyticsGet('/history', params);
 
+async function backupsGet(path) {
+  const api = apiBase ? `${apiBase}/api/backups` : '/api/backups';
+  const r = await fetch(`${api}${path}`, { headers: await authHeaders() });
+  if (!r.ok) throw new Error((await r.json()).error || await r.text());
+  return r.json();
+}
+
+export const getBackupStatus = () => backupsGet('/status');
+export const getBackupHistory = () => backupsGet('/history');
+
 /** Lista usuarios que pueden acceder al CMS (Clerk). */
 export async function getCmsUsers() {
   const r = await fetch(`${base}/users`, { headers: await authHeaders() });

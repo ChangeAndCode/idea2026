@@ -9,6 +9,7 @@
   import UserManagement from './lib/UserManagement.svelte';
   import VisitStatistics from './lib/VisitStatistics.svelte';
   import MenuFilterConfig from './lib/menuFilterConfig.svelte';
+  import BackupStatus from './lib/BackupStatus.svelte';
 
   let clerkReady = $state(false);
   let isSignedIn = $state(false);
@@ -125,6 +126,9 @@
   function goAnalytics() {
     route.set({ path: 'analytics', slug: null });
   }
+  function goBackups() {
+    route.set({ path: 'backups', slug: null });
+  }
 
   const isContent = $derived(path === 'list' || path === 'edit' || path === 'create');
   const isLanding = $derived(path === 'landing');
@@ -132,6 +136,7 @@
   const isSite = $derived(path === 'site');
   const isUsers = $derived(path === 'users');
   const isAnalytics = $derived(path === 'analytics');
+  const isBackups = $derived(path === 'backups');
   const pageTitle = $derived(
     isContent
       ? (path === 'create' ? 'Nueva página' : path === 'edit' && slug ? 'Editar página' : 'Contenido')
@@ -218,6 +223,14 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19V5m0 14h16M8 16v-4m4 4V8m4 8v-7" /></svg>
             </span>
             <span>Estadísticas</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors {isBackups ? 'bg-white/15 text-white' : 'text-white/90 hover:bg-white/10 hover:text-white'}" onclick={() => { goBackups(); sidebarOpen = false; }}>
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/90" aria-hidden="true">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </span>
+            <span>Respaldos</span>
           </button>
         </li>
         <li>
@@ -337,6 +350,8 @@
           <UserManagement {currentUserId}/>
         {:else if path === 'analytics'}
           <VisitStatistics />
+        {:else if path === 'backups'}
+          <BackupStatus />
         {:else}
           <PageList />
         {/if}

@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { notifyFailure } from './lib/notifier.js';
+import { recordBackupRun } from './lib/run-status.js';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'config', '.env') });
 
@@ -69,6 +71,7 @@ async function main() {
   console.log(`Verificación correcta: ${result.backup}`);
   console.log(`Archivos verificados: ${result.files}`);
   await writeLog(result);
+  await recordBackupRun({ type: 'verify', status: 'success', backup: result.backup, files: result.files, verified: true });
 }
 
 async function writeLog(data) {
@@ -81,5 +84,7 @@ main().catch(async (error) => {
   const result = { result: 'failure', error: error.message, completedAt: new Date().toISOString() };
   console.error(`Verificación fallida: ${error.message}`);
   try { await writeLog(result); } catch {}
+  await recordBackupRun({ type: 'verify', status: 'failure', stage: 'verify', error: error.message }).catch(() => {});
+  await notifyFailure('verify', error);
   process.exitCode = 1;
 });

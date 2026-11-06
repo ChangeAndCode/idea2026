@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { notifyFailure } from './lib/notifier.js';
+import { recordBackupRun } from './lib/run-status.js';
 
 dotenv.config({ path: path.resolve(process.cwd(), 'config', '.env') });
 
@@ -58,11 +60,14 @@ async function main() {
   };
   console.log(`\nLimpieza ${apply ? 'aplicada' : 'simulada'} correctamente.`);
   await writeLog(result);
+  await recordBackupRun({ type: 'cleanup', status: 'success', mode: result.mode, local: result.local, external: result.external });
 }
 
 main().catch(async (error) => {
   const result = { result: 'failure', error: error.message, completedAt: new Date().toISOString() };
   console.error(`Limpieza fallida: ${error.message}`);
   try { await writeLog(result); } catch {}
+  await recordBackupRun({ type: 'cleanup', status: 'failure', stage: 'cleanup', error: error.message }).catch(() => {});
+  await notifyFailure('cleanup', error);
   process.exitCode = 1;
 });
