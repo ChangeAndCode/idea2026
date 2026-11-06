@@ -1,0 +1,19 @@
+{
+  "name": "idea-cron-backup",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Diagnóstico y respaldos del sistema IDEA 2026",
+  "engines": {
+    "node": ">=22.23.4 <23"
+  },
+  "scripts": {
+    "diagnose": "node scripts/diagnose.js",
+    "backup": "node scripts/backup.js"
+  },
+  "dependencies": {
+    "bson": "^7.1.0",
+    "dotenv": "^16.4.5",
+    "mongodb": "^7.1.0"
+  }
+}
