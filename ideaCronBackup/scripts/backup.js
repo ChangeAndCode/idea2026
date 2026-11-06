@@ -12,7 +12,7 @@ for (const name of required) {
   if (!process.env[name]?.trim()) throw new Error(`Falta configurar ${name}`);
 }
 
-const sourceRoot = path.resolve(process.cwd(), '..');
+const sourceRoot = path.resolve(process.env.SNAPSHOT_SOURCE_DIR?.trim() || path.resolve(process.cwd(), '..'));
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 const backupName = `idea2026-${timestamp}`;
 const stagingDir = path.join(process.cwd(), '.staging', backupName);
@@ -46,6 +46,28 @@ async function listFiles(dir, base = dir) {
 async function copyDirectory(source, target) {
   if (!fs.existsSync(source)) throw new Error(`No existe la carpeta: ${source}`);
   await fs.promises.cp(source, target, { recursive: true, force: true });
+}
+
+async function copySnapshot() {
+  const snapshotDir = path.join(stagingDir, 'snapshot');
+  for (const project of ['ideabackend', 'ideacms', 'ideafront']) {
+    const source = path.join(sourceRoot, project);
+    const target = path.join(snapshotDir, project);
+    if (!fs.existsSync(source)) throw new Error(`No existe el proyecto para snapshot: ${source}`);
+    await fs.promises.cp(source, target, {
+      recursive: true,
+      force: true,
+      filter: (sourcePath) => {
+        const relative = path.relative(source, sourcePath);
+        const segments = relative.split(path.sep);
+        if (segments.includes('node_modules') || segments.includes('.git')) return false;
+        if (segments.includes('logs') || segments.includes('backups')) return false;
+        if (path.basename(sourcePath) === '.env') return false;
+        if (sourcePath.includes(`${path.sep}uploads${path.sep}`) || path.basename(sourcePath) === 'uploads') return false;
+        return true;
+      },
+    });
+  }
 }
 
 async function exportMongo(target) {
@@ -84,6 +106,7 @@ async function main() {
   ensureDir(stagingDir);
   ensureDir(path.join(stagingDir, 'database'));
   await copyDirectory(process.env.UPLOAD_DIR, path.join(stagingDir, 'uploads'));
+  await copySnapshot();
 
   const collections = await exportMongo(path.join(stagingDir, 'database'));
   const files = await createManifest(stagingDir);

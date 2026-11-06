@@ -10,3 +10,7 @@ La configuración privada se carga desde `config/.env`.
 npm install
 npm run diagnose
 ```
+
+El backup incluye MongoDB, `ideabackend/uploads` y un snapshot de los proyectos
+`ideabackend`, `ideacms` e `ideafront`. Se excluyen `.env`, `node_modules`, logs,
+backups y archivos temporales.
