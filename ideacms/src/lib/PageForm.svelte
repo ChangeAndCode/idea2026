@@ -3,6 +3,7 @@
   import { getPage, createPage, updatePage } from './api.js';
   import ImageUploadField from './ImageUploadField.svelte';
   import RichTextEditor from './RichTextEditor.svelte';
+  import CmsSkeleton from './CmsSkeleton.svelte';
 
   let { slug = null } = $props();
 
@@ -212,8 +213,8 @@
   {/if}
   {#if loading}
     <div class="space-y-4">
-      <div class="h-10 rounded-lg bg-slate-100 animate-pulse w-3/4"></div>
-      <div class="h-64 rounded-lg bg-slate-100 animate-pulse"></div>
+      <CmsSkeleton className="h-10 w-3/4" label="Cargando página" />
+      <CmsSkeleton className="h-64 w-full" />
     </div>
   {:else}
     <form

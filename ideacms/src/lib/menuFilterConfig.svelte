@@ -4,6 +4,7 @@
     getSearchComboConfig,
     updateSearchComboConfig,
   } from './api.js';
+  import CmsSkeleton from './CmsSkeleton.svelte';
 
   let labels = $state({
     combo1: '¿Quién eres?',
@@ -233,8 +234,17 @@
 </script>
 
 {#if loading}
-  <div class="cms-card p-8 text-slate-500">
-    Cargando configuración…
+  <div class="space-y-6" aria-busy="true">
+    <div class="cms-card space-y-5 p-8">
+    <CmsSkeleton className="h-8 w-1/3" label="Cargando filtros" />
+    <CmsSkeleton className="h-16 w-full" />
+    <CmsSkeleton className="h-16 w-full" />
+    </div>
+    <div class="grid gap-6 lg:grid-cols-3">
+      {#each [1, 2, 3] as _}
+        <div class="cms-card space-y-4 p-6"><CmsSkeleton className="h-7 w-2/3" /><CmsSkeleton className="h-11 w-full" /><CmsSkeleton className="h-11 w-full" /><CmsSkeleton className="h-11 w-full" /></div>
+      {/each}
+    </div>
   </div>
 {:else}
   <section class="space-y-6">

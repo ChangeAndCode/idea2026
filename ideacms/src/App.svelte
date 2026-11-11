@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { route } from './stores/route.js';
   import { setClerkGetToken } from './lib/api.js';
+  import CmsSkeleton from './lib/CmsSkeleton.svelte';
   import PageList from './lib/PageList.svelte';
   import PageForm from './lib/PageForm.svelte';
   import SiteConfig from './lib/SiteConfig.svelte';
@@ -150,8 +151,11 @@
 </script>
 
 {#if !clerkReady}
-  <div class="min-h-screen bg-slate-100 flex items-center justify-center">
-    <p class="text-slate-500">Cargando…</p>
+  <div class="min-h-screen bg-slate-100 p-6" aria-busy="true">
+    <div class="mx-auto max-w-6xl space-y-6 pt-12">
+      <CmsSkeleton className="h-10 w-64" label="Cargando panel" />
+      <CmsSkeleton className="h-64 w-full" />
+    </div>
   </div>
 {:else if !isSignedIn}
   {#if !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}

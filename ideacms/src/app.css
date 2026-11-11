@@ -16,6 +16,15 @@
 }
 
 @layer components {
+  .cms-skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 37%, #e2e8f0 63%);
+    background-size: 400% 100%;
+    animation: cms-skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
   .cms-card {
     @apply bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden;
   }
@@ -39,5 +48,18 @@
   }
   .cms-label {
     @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+}
+
+@keyframes cms-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

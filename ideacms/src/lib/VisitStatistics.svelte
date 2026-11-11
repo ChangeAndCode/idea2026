@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { getAnalyticsHistory, getAnalyticsPages, getAnalyticsSummary, getAnalyticsTimeseries } from './api.js';
+  import CmsSkeleton from './CmsSkeleton.svelte';
 
   const iso = (date) => date.toISOString().slice(0, 10);
   let to = $state(iso(new Date()));
@@ -91,7 +92,7 @@
     <div class="cms-card p-5"><p class="text-sm text-slate-500">Visitantes únicos</p><p class="mt-2 text-3xl font-bold text-idea-dark">{summary.uniqueVisitors ?? 0}</p></div>
   </div>
 
-  {#if loading}<div class="cms-card p-8 text-center text-slate-500">Cargando estadísticas…</div>{:else}
+  {#if loading}<div class="grid gap-6 lg:grid-cols-2" aria-busy="true"><CmsSkeleton className="h-72 w-full" label="Cargando estadísticas" /><CmsSkeleton className="h-72 w-full" /></div>{:else}
     <div class="grid gap-6 lg:grid-cols-2">
       <section class="cms-card p-6">
         <h4 class="font-semibold text-slate-800">Actividad diaria</h4>

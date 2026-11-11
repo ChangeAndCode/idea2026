@@ -1,5 +1,6 @@
 <script>
   import { getSiteConfig, updateSiteConfig, getSocialLinks, updateSocialLinks } from './api.js';
+  import CmsSkeleton from './CmsSkeleton.svelte';
   import ImageUploadField from './ImageUploadField.svelte';
 
   const DEFAULT_LANDING = {
@@ -343,9 +344,16 @@
     <div class="mb-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200 px-3 py-2" role="alert">{error}</div>
   {/if}
   {#if loading}
-    <div class="cms-card p-8">
-      <div class="h-8 rounded-lg bg-slate-100 animate-pulse w-1/2"></div>
-      <div class="mt-4 h-24 rounded-lg bg-slate-100 animate-pulse"></div>
+    <div class="cms-card space-y-6 p-8" aria-busy="true">
+      <CmsSkeleton className="h-8 w-1/2" label="Cargando configuración" />
+      <CmsSkeleton className="mt-4 h-56 w-full rounded-2xl" />
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {#each [1, 2, 3, 4] as _}<CmsSkeleton className="h-20 w-full" label="Cargando logo" />{/each}
+      </div>
+      <CmsSkeleton className="h-8 w-2/3" />
+      <div class="grid gap-4 md:grid-cols-3">
+        {#each [1, 2, 3] as _}<CmsSkeleton className="h-32 w-full" />{/each}
+      </div>
     </div>
   {:else}
     <!-- Pestañas -->
