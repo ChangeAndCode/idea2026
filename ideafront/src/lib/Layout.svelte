@@ -14,9 +14,9 @@
   const defaultNavItems = [
     { label: 'EMPRENDIMIENTO', path: '/pagina/emprendimiento' },
     { label: 'CAPACITACIÓN', path: '/pagina/capacitacion' },
-    { label: 'FERIAS/EVENTOS', path: '/pagina/ferias-y-eventos' },
+    { label: 'FERIAS Y EVENTOS', path: '/pagina/ferias-y-eventos' },
     { label: 'SECTOR INDUSTRIAL', path: '/pagina/sector-industrial' },
-    { label: 'APOYOS/FINANCIAMIENTOS', path: '/pagina/apoyos-y-financiamientos' },
+    { label: 'APOYOS Y FINANCIAMIENTOS', path: '/pagina/apoyos-y-financiamientos' },
   ];
   const defaultLogoMunicipio = '/assets/logos/logo-municipio.png';
   const defaultLogoIdea = '/assets/logos/logo-idea.png';
