@@ -1,6 +1,7 @@
 <script>
   import { route } from '../stores/route.js';
   import { getPages, deletePage } from './api.js';
+  import CmsSkeleton from './CmsSkeleton.svelte';
 
   let list = $state([]);
   let loading = $state(true);
@@ -90,7 +91,7 @@
   {#if loading}
     <ul class="space-y-2">
       {#each [1, 2, 3, 4, 5] as _}
-        <li class="h-14 rounded-lg bg-slate-100 animate-pulse"></li>
+        <li><CmsSkeleton className="h-14 w-full" label="Cargando página" /></li>
       {/each}
     </ul>
   {:else if list.length === 0}

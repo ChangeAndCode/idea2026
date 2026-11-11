@@ -2,6 +2,7 @@
   import { route } from '../stores/route.js';
   import { getPages, getSiteConfig, updateSiteConfig } from './api.js';
   import ImageUploadField from './ImageUploadField.svelte';
+  import CmsSkeleton from './CmsSkeleton.svelte';
 
   let navItems = $state([]);
   let pages = $state([]);
@@ -233,10 +234,12 @@
     </p>
   {/if}
   {#if loading}
-    <div class="space-y-4">
-      <div class="h-8 rounded-lg bg-slate-100 animate-pulse w-1/2"></div>
-      <div class="h-24 rounded-lg bg-slate-100 animate-pulse"></div>
-      <div class="h-24 rounded-lg bg-slate-100 animate-pulse"></div>
+    <div class="cms-card space-y-6 p-8" aria-busy="true">
+      <CmsSkeleton className="h-8 w-1/2" label="Cargando configuración del sitio" />
+      <CmsSkeleton className="h-5 w-2/3" />
+      <div class="space-y-3">{#each [1, 2, 3, 4, 5] as _}<CmsSkeleton className="h-12 w-full" />{/each}</div>
+      <CmsSkeleton className="h-6 w-1/3" />
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">{#each [1, 2, 3] as _}<CmsSkeleton className="h-28 w-full" label="Cargando logo" />{/each}</div>
     </div>
   {:else}
     <form onsubmit={(e) => { e.preventDefault(); submit(); }} class="space-y-8">

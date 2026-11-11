@@ -1,5 +1,6 @@
 <script>
   import { getCmsUsers, createCmsUser, deleteCmsUser, lockCmsUser } from './api.js';
+  import CmsSkeleton from './CmsSkeleton.svelte';
 
   let list = $state([]);
   let loading = $state(true);
@@ -187,7 +188,7 @@
     {#if loading}
       <div class="space-y-2">
         {#each [1, 2, 3] as _}
-          <div class="h-12 rounded-lg bg-slate-100 animate-pulse"></div>
+          <CmsSkeleton className="h-12 w-full" label="Cargando usuario" />
         {/each}
       </div>
       {:else if list.length === 0}

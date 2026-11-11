@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '../../stores/router.js';
   import { apiUrl, mediaUrl } from '../api.js';
+  import ImageWithSkeleton from '../ImageWithSkeleton.svelte';
 
   function go(path) {
     page.goto(path);
@@ -319,10 +320,10 @@
       <div class="mt-8 flex justify-center md:mt-0 md:flex-shrink-0 md:justify-end">
         {#if heroMascotLink}
           <a href={heroMascotLink} aria-label="Abrir enlace de Chambabot">
-            <img src={mediaUrl(heroMascotImg)} alt="Chambabot, asistente inteligente" class="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]" />
+            <ImageWithSkeleton src={mediaUrl(heroMascotImg)} alt="Chambabot, asistente inteligente" className="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]" wrapperClass="relative block min-h-[16rem]" eager />
           </a>
         {:else}
-          <img src={mediaUrl(heroMascotImg)} alt="Chambabot, asistente inteligente" class="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]" />
+          <ImageWithSkeleton src={mediaUrl(heroMascotImg)} alt="Chambabot, asistente inteligente" className="h-64 w-auto max-w-[18rem] rounded-xl object-contain sm:h-72 sm:max-w-[22rem] md:h-[22rem] md:max-w-[28rem] lg:h-[28rem] lg:max-w-[34rem]" wrapperClass="relative block min-h-[16rem]" eager />
         {/if}
       </div>
     </div>
@@ -359,10 +360,10 @@
         <div class="flex min-w-0 items-center justify-center">
           {#if logo.link}
             <a href={logo.link} class="flex min-w-0 w-full items-center justify-center" aria-label={logo.alt || 'Abrir enlace'}>
-              <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-auto max-h-32 w-auto max-w-full object-contain sm:max-h-36 md:max-h-40" />
+              <ImageWithSkeleton src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} className="h-auto max-h-32 w-auto max-w-full object-contain sm:max-h-36 md:max-h-40" wrapperClass="relative block min-h-[5rem] w-full" />
             </a>
           {:else}
-            <img src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} class="h-auto max-h-32 w-auto max-w-full object-contain sm:max-h-36 md:max-h-40" />
+            <ImageWithSkeleton src={mediaUrl(logo.src)} alt={logo.alt || 'Logo'} className="h-auto max-h-32 w-auto max-w-full object-contain sm:max-h-36 md:max-h-40" wrapperClass="relative block min-h-[5rem] w-full" />
           {/if}
         </div>
       {/if}
@@ -406,10 +407,10 @@
           <div class="animate-card-in relative flex min-h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl bg-idea-navy shadow-md">
             {#if slide.link}
               <a href={slide.link} class="flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'}>
-                <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[280px] object-contain" />
+                <ImageWithSkeleton src={mediaUrl(slide.img || '')} alt={slide.alt || ''} className="h-full w-full max-h-[280px] object-contain" wrapperClass="relative block min-h-[16rem] w-full" />
               </a>
             {:else}
-              <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[280px] object-contain" />
+              <ImageWithSkeleton src={mediaUrl(slide.img || '')} alt={slide.alt || ''} className="h-full w-full max-h-[280px] object-contain" wrapperClass="relative block min-h-[16rem] w-full" />
             {/if}
             <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-black/55 p-4 text-center text-white opacity-0 transition-opacity duration-300 hover:opacity-100">
               <p class="font-bold text-idea-yellow">{slide.title}</p>
@@ -453,10 +454,10 @@
             <div class="relative flex w-full items-center justify-center overflow-hidden rounded-2xl shadow-md {i === carouselIndex ? 'min-h-[380px] bg-idea-navy shadow-xl ring-2 ring-idea-bright/30 md:min-h-[420px]' : 'min-h-[260px] bg-slate-100'}">
               {#if slide.link}
                 <a href={slide.link} class="flex h-full w-full items-center justify-center" aria-label={slide.alt || 'Abrir enlace'}>
-                  <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[420px] object-contain" />
+                  <ImageWithSkeleton src={mediaUrl(slide.img || '')} alt={slide.alt || ''} className="h-full w-full max-h-[420px] object-contain" wrapperClass="relative block min-h-[16rem] w-full" />
                 </a>
               {:else}
-                <img src={mediaUrl(slide.img || '')} alt={slide.alt || ''} class="h-full w-full max-h-[420px] object-contain" />
+                <ImageWithSkeleton src={mediaUrl(slide.img || '')} alt={slide.alt || ''} className="h-full w-full max-h-[420px] object-contain" wrapperClass="relative block min-h-[16rem] w-full" />
               {/if}
               <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-4 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 {i === carouselIndex ? 'bg-black/55 text-white' : 'bg-black/40 text-white'}">
                 <p class="font-bold {i === carouselIndex ? 'text-idea-yellow text-lg' : 'text-white text-base'}">{slide.title}</p>
