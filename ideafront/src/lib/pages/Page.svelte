@@ -1,6 +1,9 @@
 <script>
   import { onDestroy } from 'svelte';
   import { apiUrl, mediaUrl } from '../api.js';
+  import Skeleton from '../Skeleton.svelte';
+  import ImageWithSkeleton from '../ImageWithSkeleton.svelte';
+  import ContentBlockSkeleton from '../ContentBlockSkeleton.svelte';
 
   export let slug = '';
   let title = '';
@@ -13,11 +16,43 @@
   let carouselTouchStartX = 0;
   let loading = true;
   let notFound = false;
+  const fallbackLoadingBlocks = [{ type: 'text' }];
+  let loadingBlocks = fallbackLoadingBlocks;
+
+  function layoutKey(s) { return `ideafront-page-layout:${s}`; }
+
+  function blockLayout(items) {
+    return (Array.isArray(items) ? items : [])
+      .filter((block) => ['text', 'image', 'button', 'carousel'].includes(block?.type))
+      .map((block) => ({ type: block.type, align: block.align || 'left', width: block.width || '500' }));
+  }
+
+  function bodyLayout(html) {
+    const source = String(html || '');
+    if (!source.trim()) return [{ type: 'text' }];
+    const layout = [];
+    const tokens = source.match(/<img\b[^>]*>|<(?:p|h[1-6]|ul|ol|table)\b[^>]*>/gi) || [];
+    for (const token of tokens) {
+      if (token.toLowerCase().startsWith('<img')) layout.push({ type: 'image', align: 'left', width: '500' });
+      else if (layout[layout.length - 1]?.type !== 'text') layout.push({ type: 'text' });
+    }
+    return layout.length ? layout : [{ type: 'text' }];
+  }
+
+  function loadCachedLayout(s) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(layoutKey(s)) || 'null');
+      loadingBlocks = Array.isArray(cached) && cached.length ? cached : fallbackLoadingBlocks;
+    } catch (_) {
+      loadingBlocks = fallbackLoadingBlocks;
+    }
+  }
 
   async function load(s) {
     if (!s) return;
     loading = true;
     notFound = false;
+    loadCachedLayout(s);
 
     // 1) Intentar siempre primero el CMS (cms_pages)
     try {
@@ -29,6 +64,9 @@
         image = data.image || '';
         imageLink = data.imageLink || '';
         blocks = Array.isArray(data.blocks) ? data.blocks : [];
+        const layout = blocks.length ? blockLayout(blocks) : bodyLayout(body);
+        loadingBlocks = layout;
+        try { localStorage.setItem(layoutKey(s), JSON.stringify(layout)); } catch (_) {}
         carouselIndexes = {};
         startCarouselAutoplay();
         loading = false;
@@ -96,8 +134,17 @@
 </script>
 
 {#if loading}
-  <section class="min-h-[50vh] flex items-center justify-center bg-white py-16">
-    <p class="text-slate-600">Cargando...</p>
+  <section class="min-h-[50vh] bg-white px-8 py-12 sm:px-10 sm:py-16" aria-busy="true">
+    <div class="relative min-h-[32rem] w-full overflow-hidden rounded-2xl bg-idea-dark px-10 py-12 shadow-xl sm:px-14 sm:py-16">
+      <Skeleton className="h-10 w-2/3 max-w-xl bg-white/20" label="Cargando página" />
+      <div class="mt-10">
+        <div class="space-y-8">
+          {#each loadingBlocks as block, index (index)}
+            <ContentBlockSkeleton type={block.type} align={block.align} width={block.width} />
+          {/each}
+        </div>
+      </div>
+    </div>
   </section>
 {:else if notFound}
   <section class="min-h-[50vh] flex items-center justify-center bg-white py-16">
@@ -130,7 +177,7 @@
                 {:else if block.type === 'image' && imageSrc(block.src)}
                   {@const imageAlign = block.align === 'center' ? 'mx-auto' : block.align === 'right' ? 'ml-auto' : 'mr-auto'}
                   <figure class={`flex w-full flex-col ${imageAlign}`} style={`max-width: ${block.width || '500'}px;`}>
-                    {#if block.link}<a href={block.link}><img src={imageSrc(block.src)} alt={block.alt || ''} class="h-auto w-full rounded-lg object-contain" /></a>{:else}<img src={imageSrc(block.src)} alt={block.alt || ''} class="h-auto w-full rounded-lg object-contain" />{/if}
+                    {#if block.link}<a href={block.link} class="block"><ImageWithSkeleton src={imageSrc(block.src)} alt={block.alt || ''} className="h-auto w-full rounded-lg object-contain" wrapperClass="relative block min-h-[8rem]" /></a>{:else}<ImageWithSkeleton src={imageSrc(block.src)} alt={block.alt || ''} className="h-auto w-full rounded-lg object-contain" wrapperClass="relative block min-h-[8rem]" />{/if}
                     {#if block.caption}<figcaption class="mt-2 text-white/80" style={`font-size: ${block.captionTextSize || '16px'};`}>{block.caption}</figcaption>{/if}
                   </figure>
                 {:else if block.type === 'carousel'}
@@ -139,7 +186,7 @@
                   {#if slide}
                     <div class="relative touch-pan-y rounded-lg bg-white p-4 text-idea-dark" role="group" aria-label="Carrusel de contenido" on:touchstart={onCarouselTouchStart} on:touchend={(event) => onCarouselTouchEnd(event, block)}>
                       {#if imageSrc(slide.image)}
-                        {#if slide.link}<a href={slide.link}><img src={imageSrc(slide.image)} alt={slide.alt || ''} class="mx-auto max-h-[28rem] w-full object-contain" /></a>{:else}<img src={imageSrc(slide.image)} alt={slide.alt || ''} class="mx-auto max-h-[28rem] w-full object-contain" />{/if}
+                        {#if slide.link}<a href={slide.link} class="block"><ImageWithSkeleton src={imageSrc(slide.image)} alt={slide.alt || ''} className="mx-auto max-h-[28rem] w-full object-contain" wrapperClass="relative block min-h-[10rem]" /></a>{:else}<ImageWithSkeleton src={imageSrc(slide.image)} alt={slide.alt || ''} className="mx-auto max-h-[28rem] w-full object-contain" wrapperClass="relative block min-h-[10rem]" />{/if}
                       {/if}
                       {#if slide.title}<h3 class="mt-3 text-xl font-bold">{slide.title}</h3>{/if}
                       {#if slide.subtitle}<p class="mt-1">{slide.subtitle}</p>{/if}
@@ -205,9 +252,9 @@
           <div class="flex-shrink-0 order-1 md:order-2 w-full md:w-[28rem] lg:w-[34rem] xl:w-[40rem]">
             <div class="bg-white p-4 rounded-lg">
               {#if imageLink}
-                <a href={imageLink} aria-label="Abrir enlace de la imagen"><img src={displayImageSrc} alt="" class="w-full object-contain" /></a>
+                <a href={imageLink} aria-label="Abrir enlace de la imagen" class="block"><ImageWithSkeleton src={displayImageSrc} alt={title} className="w-full object-contain" wrapperClass="relative block min-h-[12rem]" /></a>
               {:else}
-                <img src={displayImageSrc} alt="" class="w-full object-contain" />
+                <ImageWithSkeleton src={displayImageSrc} alt={title} className="w-full object-contain" wrapperClass="relative block min-h-[12rem]" />
               {/if}
             </div>
           </div>
