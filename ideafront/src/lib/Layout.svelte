@@ -270,6 +270,6 @@
 <footer class="bg-idea-navy py-12 text-white">
   <div class="mx-auto max-w-7xl px-4 text-center">
     <h3 class="text-xl font-semibold">Síguenos en nuestras redes</h3>
-    {#if socialLinks.length > 0}<div class="mt-4 flex justify-center gap-4">{#each socialLinks as social}<a href={social.url} target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label={social.label}><img src={social.icon} alt={social.label} class="h-16 w-16 object-contain" /></a>{/each}</div>{/if}
+    {#if socialLinks.length > 0}<div class="mt-4 flex justify-center gap-4">{#each socialLinks as social}<a href={social.url} target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label={social.label}><img src={social.icon} alt={social.label} class="h-11 w-11 object-contain" /></a>{/each}</div>{/if}
   </div>
 </footer>

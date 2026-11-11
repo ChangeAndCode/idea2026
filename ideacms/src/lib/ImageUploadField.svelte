@@ -12,14 +12,43 @@
    * @property {boolean} [compact]
    * @property {number} [requiredWidth]
    * @property {number} [requiredHeight]
+   * @property {number} [normalizeWidth]
+   * @property {number} [normalizeHeight]
    */
 
   /** @type {Props} */
-  let { label = '', id = '', value = '', onChange, compact = false, requiredWidth = 0, requiredHeight = 0 } = $props();
+  let { label = '', id = '', value = '', onChange, compact = false, requiredWidth = 0, requiredHeight = 0, normalizeWidth = 0, normalizeHeight = 0 } = $props();
 
   let uploading = $state(false);
   let fileInput = $state(/** @type {HTMLInputElement | null} */ (null));
   let uploadError = $state('');
+
+  async function normalizeImage(file) {
+    if (!(normalizeWidth > 0 && normalizeHeight > 0)) return file;
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error('No se pudo leer la imagen'));
+        image.src = objectUrl;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = normalizeWidth;
+      canvas.height = normalizeHeight;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('No se pudo preparar la imagen');
+      const scale = Math.min(normalizeWidth / image.naturalWidth, normalizeHeight / image.naturalHeight);
+      const width = image.naturalWidth * scale;
+      const height = image.naturalHeight * scale;
+      context.drawImage(image, (normalizeWidth - width) / 2, (normalizeHeight - height) / 2, width, height);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('No se pudo generar la imagen ajustada');
+      return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' });
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
 
   async function onFile(/** @type {Event & { currentTarget: HTMLInputElement }} */ e) {
     const f = e.currentTarget?.files?.[0];
@@ -37,7 +66,7 @@
           throw new Error(`La imagen debe medir exactamente ${requiredWidth} x ${requiredHeight} píxeles.`);
         }
       }
-      const data = await uploadImage(f);
+      const data = await uploadImage(await normalizeImage(f));
       if (data?.path) onChange?.(data.path);
     } catch (err) {
       uploadError = err instanceof Error ? err.message : 'Error al subir';

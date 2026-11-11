@@ -406,11 +406,11 @@
                 id="social-icon-{i}"
                 label="Icono de la red social"
                 value={social.icon}
-                requiredWidth={128}
-                requiredHeight={128}
+                normalizeWidth={128}
+                normalizeHeight={128}
                 onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
               />
-              <p class="text-xs text-slate-500">Usa un icono cuadrado de 128 × 128 píxeles, preferentemente PNG con fondo transparente.</p>
+              <p class="text-xs text-slate-500">Puedes cargar un logotipo de cualquier dimensión. Se ajustará automáticamente, conservando su proporción; se recomienda PNG con fondo transparente.</p>
             </div>
           </div>
         {/each}
@@ -770,11 +770,11 @@
                 id="social-icon-{i}"
                 label="Icono de la red social (obligatorio)"
                 value={social.icon}
-                requiredWidth={128}
-                requiredHeight={128}
+                normalizeWidth={128}
+                normalizeHeight={128}
                 onChange={(value) => { social.icon = value; socialLinks = [...socialLinks]; }}
               />
-              <p class="text-xs text-slate-500">Medida obligatoria: 128 × 128 píxeles. Recomendado: PNG con fondo transparente.</p>
+              <p class="text-xs text-slate-500">Puedes cargar un logotipo de cualquier dimensión. Se ajustará automáticamente, conservando su proporción; se recomienda PNG con fondo transparente.</p>
               </div>
               {/if}
             </div>
