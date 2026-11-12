@@ -14,9 +14,9 @@
   const defaultNavItems = [
     { label: 'EMPRENDIMIENTO', path: '/pagina/emprendimiento' },
     { label: 'CAPACITACIÓN', path: '/pagina/capacitacion' },
-    { label: 'FERIAS/EVENTOS', path: '/pagina/ferias-y-eventos' },
+    { label: 'FERIAS Y EVENTOS', path: '/pagina/ferias-y-eventos' },
     { label: 'SECTOR INDUSTRIAL', path: '/pagina/sector-industrial' },
-    { label: 'APOYOS/FINANCIAMIENTOS', path: '/pagina/apoyos-y-financiamientos' },
+    { label: 'APOYOS Y FINANCIAMIENTOS', path: '/pagina/apoyos-y-financiamientos' },
   ];
   const defaultLogoMunicipio = '/assets/logos/logo-municipio.png';
   const defaultLogoIdea = '/assets/logos/logo-idea.png';
@@ -100,13 +100,13 @@
       </div>
 
       <!-- Escritorio: enlaces visibles -->
-      <ul class="desktop-nav min-w-0 shrink-0 items-center justify-end gap-1 2xl:gap-2">
+      <ul class="desktop-nav min-w-0 shrink-0 items-center justify-end gap-2 2xl:gap-3">
         {#each headerItems() as item, itemIndex}
           {@const submenu = submenuFor(item)}
           <li class="group relative shrink-0">
             <a
               href={item.path}
-              class="inline-flex max-w-[145px] items-center whitespace-normal rounded-md px-1.5 py-2 text-center text-xs font-normal uppercase leading-tight tracking-wide text-white transition hover:bg-white/10 2xl:px-2 2xl:text-sm"
+              class="inline-flex items-center whitespace-nowrap rounded-md px-2.5 py-2 text-center text-xs font-normal uppercase leading-tight tracking-wide text-white transition hover:bg-white/10 2xl:px-3 2xl:text-sm"
               onclick={(e) => { e.preventDefault(); go(item.path); }}
             >
               {item.label}
@@ -270,6 +270,6 @@
 <footer class="bg-idea-navy py-12 text-white">
   <div class="mx-auto max-w-7xl px-4 text-center">
     <h3 class="text-xl font-semibold">Síguenos en nuestras redes</h3>
-    {#if socialLinks.length > 0}<div class="mt-4 flex justify-center gap-4">{#each socialLinks as social}<a href={social.url} target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label={social.label}><img src={social.icon} alt={social.label} class="h-16 w-16 object-contain" /></a>{/each}</div>{/if}
+    {#if socialLinks.length > 0}<div class="mt-4 flex justify-center gap-4">{#each socialLinks as social}<a href={social.url} target="_blank" rel="noopener noreferrer" class="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white transition hover:bg-idea-dark hover:border-idea-dark" aria-label={social.label}><img src={social.icon} alt={social.label} class="h-11 w-11 object-contain" /></a>{/each}</div>{/if}
   </div>
 </footer>
